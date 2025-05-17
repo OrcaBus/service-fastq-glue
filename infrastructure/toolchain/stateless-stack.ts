@@ -1,8 +1,9 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { DeploymentStackPipeline } from '@orcabus/platform-cdk-constructs/deployment-stack-pipeline';
-import { DeployStack } from '../stage/deployment-stack';
-import { getStackProps } from '../stage/config';
+import { getStatelessStackProps } from '../stage/config';
+import { REPO_NAME } from './constants';
+import { ApplicationStatelessStack } from '../stage/application-stack';
 
 export class StatelessStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -10,13 +11,13 @@ export class StatelessStack extends cdk.Stack {
 
     new DeploymentStackPipeline(this, 'DeploymentPipeline', {
       githubBranch: 'main',
-      githubRepo: 'template-service-base',
-      stack: DeployStack,
+      githubRepo: REPO_NAME,
+      stack: ApplicationStatelessStack,
       stackName: 'DeployStack',
       stackConfig: {
-        beta: getStackProps('BETA'),
-        gamma: getStackProps('GAMMA'),
-        prod: getStackProps('PROD'),
+        beta: getStatelessStackProps('BETA'),
+        gamma: getStatelessStackProps('GAMMA'),
+        prod: getStatelessStackProps('PROD'),
       },
       pipelineName: 'OrcaBus-StatelessMicroservice',
       cdkSynthCmd: ['pnpm install --frozen-lockfile --ignore-scripts', 'pnpm cdk synth'],
