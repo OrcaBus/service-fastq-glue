@@ -1,0 +1,164 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Set inputs variables",
+  "States": {
+    "Set inputs variables": {
+      "Type": "Pass",
+      "Next": "Get Libraries in SampleSheet",
+      "Assign": {
+        "instrumentRunId": "{% $states.input.instrumentRunId %}"
+      }
+    },
+    "Get Libraries in SampleSheet": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Arguments": {
+        "FunctionName": "${__get_library_id_list_from_samplesheet_lambda_function_arn__}",
+        "Payload": {
+          "instrumentRunId": "{% $instrumentRunId %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "For each library (batched)",
+      "Output": {
+        "libraryIdList": "{% $states.result.Payload.libraryIdList %}"
+      }
+    },
+    "For each library (batched)": {
+      "Type": "Map",
+      "Label": "Foreachlibrarybatched",
+      "MaxConcurrency": 1000,
+      "Items": "{% $states.input.libraryIdList %}",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "EXPRESS"
+        },
+        "StartAt": "Get vars inside map",
+        "States": {
+          "Get vars inside map": {
+            "Type": "Pass",
+            "Next": "Get BCLConvert Data from SampleSheet",
+            "Assign": {
+              "libraryIdListMapIter": "{% $states.input.Items %}",
+              "instrumentRunIdMapIter": "{% $states.input.BatchInput.instrumentRunId %}"
+            }
+          },
+          "Get BCLConvert Data from SampleSheet": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Output": {
+              "bclConvertDataByLibrary": "{% $states.result.Payload.bclConvertDataByLibrary %}"
+            },
+            "Arguments": {
+              "FunctionName": "${__get_bclconvert_data_from_samplesheet_lambda_function_arn__}",
+              "Payload": {
+                "libraryIdList": "{% $libraryIdListMapIter %}",
+                "instrumentRunId": "{% $instrumentRunIdMapIter %}"
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 1,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "Next": "For each library"
+          },
+          "For each library": {
+            "Type": "Map",
+            "Items": "{% $states.input.bclConvertDataByLibrary %}",
+            "ItemSelector": {
+              "libraryId": "{% $states.context.Map.Item.Value.libraryId %}",
+              "bclConvertData": "{% $states.context.Map.Item.Value.bclConvertData %}"
+            },
+            "ItemProcessor": {
+              "ProcessorConfig": {
+                "Mode": "INLINE"
+              },
+              "StartAt": "Generate Fastq Set Object (with no readset)",
+              "States": {
+                "Generate Fastq Set Object (with no readset)": {
+                  "Type": "Task",
+                  "Resource": "arn:aws:states:::lambda:invoke",
+                  "Output": null,
+                  "Arguments": {
+                    "FunctionName": "${__create_fastq_set_object_lambda_function_arn__}",
+                    "Payload": {
+                      "libraryId": "{% $states.input.libraryId %}",
+                      "bclConvertData": "{% $states.input.bclConvertData %}",
+                      "instrumentRunId": "{% $instrumentRunIdMapIter %}"
+                    }
+                  },
+                  "Retry": [
+                    {
+                      "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                      ],
+                      "IntervalSeconds": 1,
+                      "MaxAttempts": 3,
+                      "BackoffRate": 2,
+                      "JitterStrategy": "FULL"
+                    }
+                  ],
+                  "End": true
+                }
+              }
+            },
+            "End": true
+          }
+        }
+      },
+      "Output": null,
+      "Next": "Generate Fastq Set Object Generation Complete Event",
+      "ItemBatcher": {
+        "MaxItemsPerBatch": 10,
+        "BatchInput": {
+          "instrumentRunId": "{% $instrumentRunId %}"
+        }
+      }
+    },
+    "Generate Fastq Set Object Generation Complete Event": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::events:putEvents",
+      "Arguments": {
+        "Entries": [
+          {
+            "Detail": {
+              "instrumentRunId": "{% $instrumentRunId %}"
+            },
+            "DetailType": "${__fastq_set_created_detail_type__}",
+            "EventBusName": "${__event_bus_name__}",
+            "Source": "${__event_source__}"
+          }
+        ]
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}
