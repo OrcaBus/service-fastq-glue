@@ -153,7 +153,7 @@
             },
             "DetailType": "${__fastq_set_created_detail_type__}",
             "EventBusName": "${__event_bus_name__}",
-            "Source": "${__event_source__}"
+            "Source": "${__stack_event_source__}"
           }
         ]
       },

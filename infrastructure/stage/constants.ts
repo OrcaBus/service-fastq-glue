@@ -1,8 +1,7 @@
 /* Constants for the stack */
 
-import { StageName } from '@orcabus/platform-cdk-constructs/utils';
-
 import path from 'path';
+import { StageName } from '@orcabus/platform-cdk-constructs/shared-config/accounts';
 
 /* Directory constants */
 export const APP_ROOT = path.join(__dirname, '../../app');
@@ -25,6 +24,7 @@ export const BSSH_FASTQ_TO_AWS_COPY_STATUS = 'SUCCEEDED';
 /* Local stack constants */
 export const STACK_EVENT_SOURCE = 'orcabus.fastqglue';
 export const FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE = 'FastqListRowsAdded';
+export const READ_SETS_ADDED_EVENT_DETAIL_TYPE = 'ReadSetsAdded';
 
 /*
 AWS S3 Resources differ between environments
@@ -40,3 +40,24 @@ export const AWS_S3_PRIMARY_DATA_PREFIX: Record<StageName, string> = {
   ['GAMMA']: 'byob-icav2/staging/primary/',
   ['PROD']: 'byob-icav2/production/primary/',
 };
+
+/* Stacky Constants */
+
+export const SAMPLESHEET_SHOWER_STATE_CHANGE_DETAIL_TYPE = 'SamplesheetShowerStateChange';
+export const SAMPLESHEET_SHOWER_STARTING_STATUS = 'SamplesheetRegisteredEventShowerStarting';
+export const SAMPLESHEET_SHOWER_COMPLETE_STATUS = 'SamplesheetRegisteredEventShowerComplete';
+export const START_SAMPLESHEET_SHOWER_PAYLOAD_VERSION = '0.1.0';
+export const END_SAMPLESHEET_SHOWER_PAYLOAD_VERSION = '0.1.0';
+export const LIBRARY_IN_SAMPLESHEET_STATUS = 'LibraryInSamplesheet';
+export const SAMPLESHEET_METADATA_UNION_PAYLOAD_VERSION = '0.1.0';
+export const SAMPLESHEET_METADATA_UNION_DETAIL_TYPE = 'SamplesheetMetadataUnion';
+
+export const FASTQ_LIST_ROW_SHOWER_START_STATUS = 'FastqListRowEventShowerStarting';
+export const FASTQ_LIST_ROW_SHOWER_START_PAYLOAD_VERSION = '0.1.0';
+export const STACKY_FASTQ_LIST_ROW_SHOWER_STATE_CHANGE = 'FastqListRowShowerStateChange';
+export const STACKY_FASTQ_LIST_ROW_STATE_CHANGE = 'StackyFastqListRowStateChange';
+export const FASTQ_SYNC_DETAIL_TYPE = 'fastqSync';
+export const NEW_FASTQ_LIST_ROW_STATUS = 'newFastqListRow';
+export const NEW_FASTQ_LIST_ROW_PAYLOAD_VERSION = '0.1.0';
+export const FASTQ_LIST_ROW_EVENT_SHOWER_COMPLETE_STATUS = 'FastqListRowEventShowerComplete';
+export const FASTQ_LIST_ROW_SHOWER_COMPLETE_PAYLOAD_VERSION = '0.1.0';

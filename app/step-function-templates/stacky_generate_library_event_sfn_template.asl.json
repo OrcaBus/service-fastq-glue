@@ -1,0 +1,248 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Save inputs as vars",
+  "States": {
+    "Save inputs as vars": {
+      "Type": "Pass",
+      "Next": "Get Library IDs from Instrument Run ID",
+      "Assign": {
+        "instrumentRunId": "{% $states.input.instrumentRunId %}"
+      }
+    },
+    "Get Library IDs from Instrument Run ID": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "${__get_library_id_list_from_samplesheet_lambda_function_arn__}",
+        "Payload": {
+          "instrumentRunId": "{% $instrumentRunId %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Start SampleSheet Shower",
+      "Assign": {
+        "libraryIdList": "{% $states.result.Payload.libraryIdList %}"
+      }
+    },
+    "Start SampleSheet Shower": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::events:putEvents.waitForTaskToken",
+      "Arguments": {
+        "Entries": [
+          {
+            "Detail": {
+              "timestamp": "{% $states.context.State.EnteredTime %}",
+              "status": "${__samplesheet_shower_starting_status__}",
+              "payload": {
+                "version": "${__start_samplesheet_shower_payload_version__}",
+                "data": {
+                  "instrumentRunId": "{% $instrumentRunId %}"
+                }
+              }
+            },
+            "DetailType": "${__samplesheet_shower_started_detail_type__}",
+            "EventBusName": "${__event_bus_name__}",
+            "Source": "${__stack_event_source__}"
+          }
+        ]
+      },
+      "Next": "For each library id (batched)"
+    },
+    "For each library id (batched)": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "Save map vars",
+        "States": {
+          "Save map vars": {
+            "Type": "Pass",
+            "Next": "Get Library objects",
+            "Assign": {
+              "libraryIdListMapIter": "{% $states.input.Items.libraryIdListMapIter %}",
+              "instrumentRunIdMapIter": "{% $states.input.BatchInput.instrumentRunIdMapIter %}"
+            }
+          },
+          "Get Library objects": {
+            "Type": "Parallel",
+            "Next": "For each library id",
+            "Branches": [
+              {
+                "StartAt": "Get Library Objects from library id list",
+                "States": {
+                  "Get Library Objects from library id list": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::lambda:invoke",
+                    "Arguments": {
+                      "FunctionName": "${__get_library_objects_from_library_id_list_lambda_function_arn__}",
+                      "Payload": {
+                        "libraryIdList": "{% $libraryIdListMapIter %}"
+                      }
+                    },
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "Lambda.ServiceException",
+                          "Lambda.AWSLambdaException",
+                          "Lambda.SdkClientException",
+                          "Lambda.TooManyRequestsException"
+                        ],
+                        "IntervalSeconds": 1,
+                        "MaxAttempts": 3,
+                        "BackoffRate": 2,
+                        "JitterStrategy": "FULL"
+                      }
+                    ],
+                    "End": true,
+                    "Output": {
+                      "libraryObjectsList": "{% $states.result.Payload.libraryObjectsList %}"
+                    }
+                  }
+                }
+              },
+              {
+                "StartAt": "Get Fastq List Row Objects from Library Id list",
+                "States": {
+                  "Get Fastq List Row Objects from Library Id list": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::lambda:invoke",
+                    "Arguments": {
+                      "FunctionName": "${__get_fastq_list_row_objects_from_library_id_list_lambda_function_arn__}",
+                      "Payload": {
+                        "libraryIdList": "{% $libraryIdListMapIter %}",
+                        "instrumentRunId": "{% $instrumentRunIdMapIter %}"
+                      }
+                    },
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "Lambda.ServiceException",
+                          "Lambda.AWSLambdaException",
+                          "Lambda.SdkClientException",
+                          "Lambda.TooManyRequestsException"
+                        ],
+                        "IntervalSeconds": 1,
+                        "MaxAttempts": 3,
+                        "BackoffRate": 2,
+                        "JitterStrategy": "FULL"
+                      }
+                    ],
+                    "End": true,
+                    "Output": {
+                      "fastqListRowObjectsList": "{% $states.result.Payload.fastqListRowObjectsList %}"
+                    }
+                  }
+                }
+              }
+            ],
+            "Output": {
+              "libraryObjectsList": "{% $states.result[0].libraryObjectsList %}",
+              "fastqListRowObjectsList": "{% $states.result[1].fastqListRowObjectsList %}"
+            }
+          },
+          "For each library id": {
+            "Type": "Map",
+            "ItemProcessor": {
+              "ProcessorConfig": {
+                "Mode": "INLINE"
+              },
+              "StartAt": "Put library id event",
+              "States": {
+                "Put library id event": {
+                  "Type": "Task",
+                  "Resource": "arn:aws:states:::events:putEvents",
+                  "Arguments": {
+                    "Entries": [
+                      {
+                        "Detail": {
+                          "timestamp": "{% $states.context.State.EnteredTime %}",
+                          "status": "${__library_in_samplesheet_status__}",
+                          "payload": {
+                            "version": "${__samplesheet_metadata_union_payload_version__}",
+                            "data": {
+                              "instrumentRunId": "{% $instrumentRunIdMapIter %}",
+                              "library": "{% /* https://try.jsonata.org/u147L2Tlv */\n{\n  \"orcabusId\": $states.input.libraryObj.orcabusId,\n  \"libraryId\": $states.input.libraryObj.libraryId,\n  \"workflow\": $states.input.libraryObj.workflow,\n  \"type\": $states.input.libraryObj.type,\n  \"assay\": $states.input.libraryObj.assay,\n  \"coverage\": $states.input.libraryObj.coverage\n} %}",
+                              "sample": "{% $states.input.libraryObj.sample %}",
+                              "subject": "{% $states.input.libraryObj.subject %}",
+                              "bclconvertDataRows": "{% /* https://try.jsonata.org/rW0rrJnyr */\n[$map(\n  $states.input.fastqListRowObjectsList,\n  function($fastqListRowIter){\n      {\n          \"sampleId\": $fastqListRowIter.library.libraryId,\n          \"index\": $split($fastqListRowIter.index, \"+\")[0],\n          \"index2\": $split($fastqListRowIter.index, \"+\")[1] ? $split($fastqListRowIter.index, \"+\")[1] : null,\n          \"lane\": $fastqListRowIter.lane\n      }\n  }\n)] %}",
+                              "fastqListRows": "{% /* https://try.jsonata.org/wDQuAouIc */\n[$map(\n  $states.input.fastqListRowObjectsList,\n  function($fastqListRowIter){\n    {\n      \"fastqListRowRgid\": $join([\n        $fastqListRowIter.index,\n        $string($fastqListRowIter.lane),\n        $fastqListRowIter.instrumentRunId\n      ], \".\"\n      )\n    }\n  }\n)] %}"
+                            }
+                          }
+                        },
+                        "DetailType": "${__samplesheet_metadata_union_detail_type__}",
+                        "EventBusName": "${__event_bus_name__}",
+                        "Source": "${__stack_event_source__}"
+                      }
+                    ]
+                  },
+                  "End": true
+                }
+              }
+            },
+            "End": true,
+            "Items": "{% $libraryIdListMapIter %}",
+            "ItemSelector": {
+              "libraryId": "{% $states.context.Map.Item.Value %}",
+              "libraryObj": "{% /* https://try.jsonata.org/ViIhBBwlQ */\n$filter(\n    $states.input.libraryObjectsList,\n    function($libraryObjectIter){\n        $libraryObjectIter.libraryId = $states.context.Map.Item.Value\n    }\n) %}",
+              "fastqListRowObjectsList": "{% /* https://try.jsonata.org/GgAvgbSE3 */\n[$filter(\n    $states.input.fastqListRowObjectsList,\n    function($fastqListRowObjectsIter){\n        $fastqListRowObjectsIter.library.libraryId = $states.context.Map.Item.Value\n    }\n)] %}"
+            }
+          }
+        }
+      },
+      "Label": "Foreachlibraryidbatched",
+      "MaxConcurrency": 1000,
+      "Next": "Samplesheet complete",
+      "ItemBatcher": {
+        "BatchInput": {
+          "instrumentRunIdMapIter": "{% $instrumentRunId %}"
+        },
+        "MaxItemsPerBatch": 10
+      },
+      "Items": "{% $libraryIdList %}",
+      "ItemSelector": {
+        "libraryIdListMapIter": "{% $states.context.Map.Item.Value %}"
+      }
+    },
+    "Samplesheet complete": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::events:putEvents",
+      "Arguments": {
+        "Entries": [
+          {
+            "Detail": {
+              "timestamp": "{% $states.context.State.EnteredTime %}",
+              "status": "${__samplesheet_shower_complete_status__}",
+              "payload": {
+                "version": "${__end_samplesheet_shower_payload_version__}",
+                "data": {
+                  "instrumentRunId": "{% $instrumentRunId %}"
+                }
+              }
+            },
+            "DetailType": "${__samplesheet_shower_started_detail_type__}",
+            "EventBusName": "${__event_bus_name__}",
+            "Source": "${__stack_event_source__}"
+          }
+        ]
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}
