@@ -8,10 +8,14 @@ import { buildAllLambdaFunctions } from './lambdas';
 import { buildAllEventBridgeTargets } from './event-targets';
 import { buildAllStepFunctions } from './step-functions';
 import { buildAllEventRules } from './event-rules';
+import { NagSuppressions } from 'cdk-nag';
+import { StageName } from '@orcabus/platform-cdk-constructs/shared-config/accounts';
 
 export class ApplicationStatelessStack extends cdk.Stack {
+  public readonly stageName: StageName;
   constructor(scope: Construct, id: string, props: StatelessApplicationStackConfig) {
     super(scope, id, props);
+    this.stageName = props.stageName;
 
     // Event Bus
     const eventBus = events.EventBus.fromEventBusName(this, 'eventBus', props.eventBusName);
@@ -44,5 +48,21 @@ export class ApplicationStatelessStack extends cdk.Stack {
       eventBridgeRuleObjects: eventBridgeRuleObjects,
       stepFunctionObjects: stepFunctionObjects,
     });
+
+    // Add in stack-level suppressions
+    NagSuppressions.addStackSuppressions(this, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason: 'We need to add this for the lambdas to work',
+      },
+      {
+        id: 'AwsSolutions-SF1',
+        reason: "We don't need to log all step function events to cloudwatch",
+      },
+      {
+        id: 'AwsSolutions-SF2',
+        reason: "We don't need X-Reay tracing for this stack",
+      },
+    ]);
   }
 }
