@@ -12,6 +12,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { Duration } from 'aws-cdk-lib';
 import { camelCaseToSnakeCase } from '../utils';
 import { Construct } from 'constructs';
+import { NagSuppressions } from 'cdk-nag';
 
 export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): LambdaObject {
   const lambdaNameToSnakeCase = camelCaseToSnakeCase(props.lambdaName);
@@ -34,6 +35,36 @@ export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): 
     props.s3BucketPrefix.s3Bucket.grantRead(
       lambdaFunction.currentVersion,
       props.s3BucketPrefix.s3Prefix
+    );
+  }
+
+  // AwsSolutions-L1 - We'll migrate to PYTHON_3_13 ASAP, soz
+  NagSuppressions.addResourceSuppressions(
+    lambdaFunction,
+    [
+      {
+        id: 'AwsSolutions-L1',
+        reason: 'Will migrate to PYTHON_3_13 ASAP, soz',
+      },
+    ],
+    true
+  );
+
+  // Add in NagSuppressions for the getFileNamesFromFastqListCsv and getSampleDemultiplexStats lambda
+  // Which requires s3 read access from a prefix
+  if (
+    props.lambdaName === 'getFileNamesFromFastqListCsv' ||
+    props.lambdaName === 'getSampleDemultiplexStats'
+  ) {
+    NagSuppressions.addResourceSuppressions(
+      lambdaFunction,
+      [
+        {
+          id: 'AwsSolutions-IAM5',
+          reason: 'This lambda requires read access to the S3 bucket prefix.',
+        },
+      ],
+      true
     );
   }
 

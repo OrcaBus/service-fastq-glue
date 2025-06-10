@@ -8,16 +8,20 @@
  */
 
 import * as cdk from 'aws-cdk-lib';
+import { StageName } from '@orcabus/platform-cdk-constructs/shared-config/accounts';
 
 /** Application Interfaces **/
 
 export interface StatelessApplicationStackConfig extends cdk.StackProps {
+  /* Stage name */
+  stageName: StageName;
+
   /* Event stuff */
   eventBusName: string;
 
   /*
     S3 Stuff - some lambdas will need permissions to read from the bucket
-    */
+  */
   awsS3CacheBucketName: string;
   awsS3PrimaryDataPrefix: string;
 }

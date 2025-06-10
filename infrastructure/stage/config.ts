@@ -4,6 +4,9 @@ import { StageName } from '@orcabus/platform-cdk-constructs/shared-config/accoun
 
 export const getStatelessStackProps = (stage: StageName): StatelessApplicationStackConfig => {
   return {
+    // Stage name
+    stageName: stage,
+
     // Main event bus
     eventBusName: EVENT_BUS_NAME,
 
