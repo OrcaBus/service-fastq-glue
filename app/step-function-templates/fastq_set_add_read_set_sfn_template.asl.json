@@ -239,6 +239,23 @@
         }
       },
       "Output": {},
+      "Next": "ReadSets Added Event"
+    },
+    "ReadSets Added Event": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::events:putEvents",
+      "Arguments": {
+        "Entries": [
+          {
+            "Detail": {
+              "instrumentRunId": "{% $instrumentRunId %}"
+            },
+            "DetailType": "${__read_sets_added_event_detail_type__}",
+            "EventBusName": "${__event_bus_name__}",
+            "Source": "${__stack_event_source__}"
+          }
+        ]
+      },
       "End": true
     }
   },

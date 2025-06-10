@@ -1,0 +1,262 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Save input vars",
+  "States": {
+    "Save input vars": {
+      "Type": "Pass",
+      "Next": "Get Library Ids in Instrument Run ID",
+      "Assign": {
+        "instrumentRunId": "{% $states.input.instrumentRunId %}"
+      }
+    },
+    "Get Library Ids in Instrument Run ID": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Arguments": {
+        "FunctionName": "${__get_library_id_list_from_samplesheet_lambda_function_arn__}",
+        "Payload": {
+          "instrumentRunId": "{% $instrumentRunId %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Fastq List row Event Shower Starting",
+      "Assign": {
+        "libraryIdList": "{% $states.result.Payload.libraryIdList %}"
+      }
+    },
+    "Fastq List row Event Shower Starting": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::events:putEvents.waitForTaskToken",
+      "Arguments": {
+        "Entries": [
+          {
+            "Detail": {
+              "timestamp": "{% $states.context.State.EnteredTime %}",
+              "status": "${__fastq_list_row_shower_start_status__}",
+              "payload": {
+                "version": "${__fastq_list_row_shower_start_payload_version__}",
+                "data": {
+                  "instrumentRunId": "{% $instrumentRunId %}"
+                }
+              }
+            },
+            "DetailType": "${__stacky_fastq_list_row_shower_state_change__}",
+            "EventBusName": "${__event_bus_name__}",
+            "Source": "${__stack_event_source__}"
+          }
+        ]
+      },
+      "Next": "For each library id (batched)"
+    },
+    "For each library id (batched)": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "Save map vars",
+        "States": {
+          "Save map vars": {
+            "Type": "Pass",
+            "Next": "Get Fastq Set Ids for Libraries",
+            "Assign": {
+              "libraryIdListMapIter": "{% $states.input.Items %}",
+              "instrumentRunIdMapIter": "{% $states.input.BatchInput.instrumentRunIdMapIter %}"
+            }
+          },
+          "Get Fastq Set Ids for Libraries": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Arguments": {
+              "FunctionName": "${__get_fastq_set_id_list_for_libraries_lambda_function_arn__}",
+              "Payload": {
+                "libraryIdList": "{% $libraryIdListMapIter %}",
+                "instrumentRunId": "{% $instrumentRunIdMapIter %}"
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 1,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "Next": "For each fastq set id",
+            "Output": {
+              "fastqSetIdList": "{% $states.result.Payload.fastqSetIdList %}"
+            }
+          },
+          "For each fastq set id": {
+            "Type": "Map",
+            "ItemProcessor": {
+              "ProcessorConfig": {
+                "Mode": "INLINE"
+              },
+              "StartAt": "Save map vars (nested)",
+              "States": {
+                "Save map vars (nested)": {
+                  "Type": "Pass",
+                  "Next": "Fastq Sync (wait for qc completion)",
+                  "Assign": {
+                    "fastqSetIdMapIter": "{% $states.input.fastqSetIdMapIter %}"
+                  }
+                },
+                "Fastq Sync (wait for qc completion)": {
+                  "Type": "Task",
+                  "Resource": "arn:aws:states:::events:putEvents",
+                  "Arguments": {
+                    "Entries": [
+                      {
+                        "Detail": {
+                          "fastqSetId": "{% $fastqSetIdMapIter %}",
+                          "taskToken": "{% $states.context.Task.Token %}",
+                          "requirements": {
+                            "hasQc": true
+                          }
+                        },
+                        "DetailType": "${__fastq_sync_detail_type__}",
+                        "EventBusName": "${__event_bus_name__}",
+                        "Source": "${__stack_event_source__}"
+                      }
+                    ]
+                  },
+                  "Next": "Get fastq list rows from fastq set id (in instrument run id)"
+                },
+                "Get fastq list rows from fastq set id (in instrument run id)": {
+                  "Type": "Task",
+                  "Resource": "arn:aws:states:::lambda:invoke",
+                  "Arguments": {
+                    "FunctionName": "${__get_fastq_list_rows_from_fastq_set_id_lambda_function_arn__}",
+                    "Payload": {
+                      "fastqSetId": "{% $fastqSetIdMapIter %}"
+                    }
+                  },
+                  "Retry": [
+                    {
+                      "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                      ],
+                      "IntervalSeconds": 1,
+                      "MaxAttempts": 3,
+                      "BackoffRate": 2,
+                      "JitterStrategy": "FULL"
+                    }
+                  ],
+                  "Next": "For each fastq list row",
+                  "Output": {
+                    "fastqListRows": "{% $states.result.Payload.fastqListRows %}"
+                  }
+                },
+                "For each fastq list row": {
+                  "Type": "Map",
+                  "ItemProcessor": {
+                    "ProcessorConfig": {
+                      "Mode": "INLINE"
+                    },
+                    "StartAt": "Fastq List Row Added Event",
+                    "States": {
+                      "Fastq List Row Added Event": {
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::events:putEvents",
+                        "Arguments": {
+                          "Entries": [
+                            {
+                              "Detail": {
+                                "status": "${__new_fastq_list_row_status__}",
+                                "timestamp": "{% $states.context.State.EnteredTime %}",
+                                "payload": {
+                                  "version": "${__new_fastq_list_row_payload_version__}",
+                                  "data": {
+                                    "fastqListRow": "{% $states.input.fastqListRowObjectIter.fqlrDict %}",
+                                    "library": "{% $states.input.fastqListRowObjectIter.library %}",
+                                    "instrumentRunId": "{% $instrumentRunIdMapIter %}"
+                                  }
+                                }
+                              },
+                              "DetailType": "${__stacky_fastq_list_row_state_change__}",
+                              "EventBusName": "${__event_bus_name__}",
+                              "Source": "${__stack_event_source__}"
+                            }
+                          ]
+                        },
+                        "End": true
+                      }
+                    }
+                  },
+                  "End": true,
+                  "Items": "{% $states.input.fastqListRows %}",
+                  "ItemSelector": {
+                    "fastqListRowObjectIter": "{% $states.context.Map.Item.Value %}"
+                  }
+                }
+              }
+            },
+            "End": true,
+            "Items": "{% $states.input.fastqSetIdList %}",
+            "ItemSelector": {
+              "fastqSetIdMapIter": "{% $states.context.Map.Item.Value %}"
+            }
+          }
+        }
+      },
+      "Label": "Foreachlibraryidbatched",
+      "MaxConcurrency": 1000,
+      "Next": "FastqListRow Event Shower Complete",
+      "ItemBatcher": {
+        "BatchInput": {
+          "instrumentRunIdMapIter": "{% $instrumentRunId %}"
+        },
+        "MaxItemsPerBatch": 10
+      },
+      "Items": "{% $libraryIdList %}"
+    },
+    "FastqListRow Event Shower Complete": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::events:putEvents.waitForTaskToken",
+      "Arguments": {
+        "Entries": [
+          {
+            "Detail": {
+              "status": "${__fastq_list_row_event_shower_complete_status__}",
+              "payload": {
+                "version": "${__fastq_list_row_shower_complete_payload_version__}",
+                "data": {
+                  "instrumentRunId": "{% $instrumentRunId %}"
+                }
+              }
+            },
+            "DetailType": "${__stacky_fastq_list_row_shower_state_change__}",
+            "EventBusName": "${__event_bus_name__}",
+            "Source": "${__stack_event_source__}"
+          }
+        ]
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}

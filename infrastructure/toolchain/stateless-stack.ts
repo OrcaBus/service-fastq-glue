@@ -13,13 +13,13 @@ export class StatelessStack extends cdk.Stack {
       githubBranch: 'main',
       githubRepo: REPO_NAME,
       stack: ApplicationStatelessStack,
-      stackName: 'DeployStack',
+      stackName: 'FastqGlueStack',
       stackConfig: {
         beta: getStatelessStackProps('BETA'),
         gamma: getStatelessStackProps('GAMMA'),
         prod: getStatelessStackProps('PROD'),
       },
-      pipelineName: 'OrcaBus-StatelessMicroservice',
+      pipelineName: 'OrcaBus-StatelessFastqGlue',
       cdkSynthCmd: ['pnpm install --frozen-lockfile --ignore-scripts', 'pnpm cdk synth'],
     });
   }
