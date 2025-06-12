@@ -34,7 +34,18 @@ export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): 
     // Grant the lambda read access to the S3 bucket
     props.s3BucketPrefix.s3Bucket.grantRead(
       lambdaFunction.currentVersion,
-      props.s3BucketPrefix.s3Prefix
+      `${props.s3BucketPrefix.s3Prefix}*`
+    );
+
+    NagSuppressions.addResourceSuppressions(
+      lambdaFunction,
+      [
+        {
+          id: 'AwsSolutions-IAM5',
+          reason: 'This lambda requires read access to the S3 bucket prefix.',
+        },
+      ],
+      true
     );
   }
 
@@ -49,24 +60,6 @@ export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): 
     ],
     true
   );
-
-  // Add in NagSuppressions for the getFileNamesFromFastqListCsv and getSampleDemultiplexStats lambda
-  // Which requires s3 read access from a prefix
-  if (
-    props.lambdaName === 'getFileNamesFromFastqListCsv' ||
-    props.lambdaName === 'getSampleDemultiplexStats'
-  ) {
-    NagSuppressions.addResourceSuppressions(
-      lambdaFunction,
-      [
-        {
-          id: 'AwsSolutions-IAM5',
-          reason: 'This lambda requires read access to the S3 bucket prefix.',
-        },
-      ],
-      true
-    );
-  }
 
   /* Return the lambda object */
   return {

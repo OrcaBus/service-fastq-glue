@@ -4,7 +4,11 @@
 Add read sets and read counts to fastq objects.
 """
 
-from orcabus_api_tools.fastq import get_fastq, add_read_set, add_read_count
+from orcabus_api_tools.fastq import (
+    get_fastq, add_read_set,
+    add_read_count, detach_read_set
+)
+from orcabus_api_tools.fastq.models import BoolAllEnum
 
 
 def handler(event, context):
@@ -22,7 +26,7 @@ def handler(event, context):
 
     # Get fastq objects from fastq list
     fastq_objects = list(map(
-        lambda fastq_id_iter_: get_fastq(fastq_id_iter_),
+        lambda fastq_id_iter_: get_fastq(fastq_id_iter_, includeS3Details=BoolAllEnum.true.value),
         fastq_id_list
     ))
 
@@ -38,6 +42,18 @@ def handler(event, context):
             lambda demux_data_iter_: demux_data_iter_['lane'] == fastq_object['lane'],
             demux_data
         ))
+
+        if (
+            fastq_object['readSet'] is not None
+            and fastq_object['readSet'].get('r1', {}).get('s3Uri', None) == fastq_file_name['read1FileUri']
+            and fastq_object['readSet'].get('r2', {}).get('s3Uri', None) == fastq_file_name['read2FileUri']
+        ):
+            # The read set is already attached, skip
+            continue
+
+        if fastq_object['readSet'] is not None:
+            # Detach the old read set first
+            detach_read_set(fastq_object['id'])
 
         # Add read set
         add_read_set(

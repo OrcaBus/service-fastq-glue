@@ -40,7 +40,7 @@
     },
     "Start SampleSheet Shower": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::events:putEvents.waitForTaskToken",
+      "Resource": "arn:aws:states:::events:putEvents",
       "Arguments": {
         "Entries": [
           {
@@ -75,7 +75,7 @@
             "Type": "Pass",
             "Next": "Get Library objects",
             "Assign": {
-              "libraryIdListMapIter": "{% $states.input.Items.libraryIdListMapIter %}",
+              "libraryIdListMapIter": "{% $states.input.Items %}",
               "instrumentRunIdMapIter": "{% $states.input.BatchInput.instrumentRunIdMapIter %}"
             }
           },
@@ -214,10 +214,7 @@
         },
         "MaxItemsPerBatch": 10
       },
-      "Items": "{% $libraryIdList %}",
-      "ItemSelector": {
-        "libraryIdListMapIter": "{% $states.context.Map.Item.Value %}"
-      }
+      "Items": "{% $libraryIdList %}"
     },
     "Samplesheet complete": {
       "Type": "Task",

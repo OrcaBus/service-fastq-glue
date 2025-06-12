@@ -58,6 +58,9 @@ export interface SfnRequirementsProps {
 
   /* Event stuff */
   needsPutEvents?: boolean;
+
+  /* Sfn specific */
+  needsDistributedMapPolicy?: boolean;
 }
 
 export const SfnRequirementsMapType: { [key in SfnNameList]: SfnRequirementsProps } = {
@@ -68,6 +71,9 @@ export const SfnRequirementsMapType: { [key in SfnNameList]: SfnRequirementsProp
 
     /* Event stuff */
     needsPutEvents: true,
+
+    /* Sfn specific */
+    needsDistributedMapPolicy: true,
   },
   // Fastq Set Add Read Set SFN requirements
   fastqSetAddReadSet: {
@@ -76,6 +82,9 @@ export const SfnRequirementsMapType: { [key in SfnNameList]: SfnRequirementsProp
 
     /* Event stuff */
     needsPutEvents: true,
+
+    /* Sfn specific */
+    needsDistributedMapPolicy: true,
   },
   // Legacy SFNs
   stackyGenerateLibraryEvent: {
@@ -84,6 +93,9 @@ export const SfnRequirementsMapType: { [key in SfnNameList]: SfnRequirementsProp
 
     /* Event stuff */
     needsPutEvents: true,
+
+    /* Sfn specific */
+    needsDistributedMapPolicy: true,
   },
   stackyGenerateFastqListRowEvent: {
     /* Lambdas */
@@ -91,6 +103,9 @@ export const SfnRequirementsMapType: { [key in SfnNameList]: SfnRequirementsProp
 
     /* Event stuff */
     needsPutEvents: true,
+
+    /* Sfn specific */
+    needsDistributedMapPolicy: true,
   },
 };
 

@@ -11,6 +11,7 @@ sampleId and sampleSheetUri,
 2. Parse in the samplesheet as a json object
 3. Get the bclconvert_data section and filter only the objects where sample_id is equal to sampleId
 
+
 """
 
 # Imports

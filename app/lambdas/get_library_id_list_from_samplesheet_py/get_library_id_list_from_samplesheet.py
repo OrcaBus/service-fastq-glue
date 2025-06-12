@@ -73,21 +73,21 @@ def handler(event, context) -> Dict[str, List[str]]:
 
     # Get the libraries from the sequence object
     return {
-        "libraryIdList": get_library_ids_in_sequence(sequence_orcabus_id)
+        "libraryIdList": list(sorted(set(get_library_ids_in_sequence(sequence_orcabus_id))))
     }
 
 
 # if __name__ == "__main__":
 #     import json
 #     from os import environ
-#     environ['AWS_PROFILE'] = 'umccr-production'
+#     environ['AWS_PROFILE'] = 'umccr-development'
 #     environ['AWS_REGION'] = 'ap-southeast-2'
-#     environ['HOSTNAME_SSM_PARAMETER'] = '/hosted_zone/umccr/name'
+#     environ['HOSTNAME_SSM_PARAMETER_NAME'] = '/hosted_zone/umccr/name'
 #     environ['ORCABUS_TOKEN_SECRET_ID'] = 'orcabus/token-service-jwt'
 #     print(json.dumps(
 #         handler(
 #             {
-#                 "instrumentRunId": "250307_A00130_0360_BHCLW2DSXF"
+#                 "instrumentRunId": "241024_A00130_0336_BHW7MVDSXC"
 #             },
 #             None
 #         ),

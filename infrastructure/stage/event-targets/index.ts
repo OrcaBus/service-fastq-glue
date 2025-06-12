@@ -24,8 +24,8 @@ function buildBsshFastqCopySucceededToFastqSetAddReadSetEventBridgeTarget(
   props.eventBridgeRuleObj.addTarget(
     new eventsTargets.SfnStateMachine(props.stateMachineObj, {
       input: RuleTargetInput.fromObject({
-        outputUri: EventField.fromPath('$.detail.payload.data.output.outputUri'),
-        instrumentRunId: EventField.fromPath('$.detail.payload.data.output.instrumentRunId'),
+        outputUri: EventField.fromPath('$.detail.payload.data.outputs.outputUri'),
+        instrumentRunId: EventField.fromPath('$.detail.payload.data.outputs.instrumentRunId'),
       }),
     })
   );
