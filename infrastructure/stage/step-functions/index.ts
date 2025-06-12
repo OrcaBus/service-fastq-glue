@@ -35,6 +35,7 @@ import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
 import * as path from 'path';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as cdk from 'aws-cdk-lib';
+import { NagSuppressions } from 'cdk-nag';
 
 function createStateMachineDefinitionSubstitutions(props: BuildSfnProps): {
   [key: string]: string;
@@ -173,6 +174,19 @@ function wireUpStateMachinePermissions(scope: Construct, props: WirePermissionsP
     );
     // Add the policy to the state machine role
     props.stateMachineObj.role.attachInlinePolicy(distributedMapPolicy);
+
+    // Add Nag suppressions
+    NagSuppressions.addResourceSuppressions(
+      [props.stateMachineObj, distributedMapPolicy],
+      [
+        {
+          id: 'AwsSolutions-IAM5',
+          reason:
+            'This policy is required to allow the state machine to start executions of itself and monitor them. ' +
+            'It is not possible to scope this down further without causing circular dependencies.',
+        },
+      ]
+    );
   }
 }
 
