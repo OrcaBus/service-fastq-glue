@@ -39,7 +39,7 @@
     },
     "Fastq List row Event Shower Starting": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::events:putEvents.waitForTaskToken",
+      "Resource": "arn:aws:states:::events:putEvents",
       "Arguments": {
         "Entries": [
           {
@@ -124,7 +124,7 @@
                 },
                 "Fastq Sync (wait for qc completion)": {
                   "Type": "Task",
-                  "Resource": "arn:aws:states:::events:putEvents",
+                  "Resource": "arn:aws:states:::events:putEvents.waitForTaskToken",
                   "Arguments": {
                     "Entries": [
                       {
@@ -168,7 +168,8 @@
                   ],
                   "Next": "For each fastq list row",
                   "Output": {
-                    "fastqListRows": "{% $states.result.Payload.fastqListRows %}"
+                    "fqlrDict": "{% $states.result.Payload.fqlrDict %}",
+                    "library": "{% $states.result.Payload.library %}"
                   }
                 },
                 "For each fastq list row": {
@@ -191,8 +192,8 @@
                                 "payload": {
                                   "version": "${__new_fastq_list_row_payload_version__}",
                                   "data": {
-                                    "fastqListRow": "{% $states.input.fastqListRowObjectIter.fqlrDict %}",
-                                    "library": "{% $states.input.fastqListRowObjectIter.library %}",
+                                    "fastqListRow": "{% $states.input.fqlrDictIter %}",
+                                    "library": "{% $states.input.libraryIter %}",
                                     "instrumentRunId": "{% $instrumentRunIdMapIter %}"
                                   }
                                 }
@@ -208,9 +209,10 @@
                     }
                   },
                   "End": true,
-                  "Items": "{% $states.input.fastqListRows %}",
+                  "Items": "{% $states.input.fqlrDict %}",
                   "ItemSelector": {
-                    "fastqListRowObjectIter": "{% $states.context.Map.Item.Value %}"
+                    "fqlrDictIter": "{% $states.context.Map.Item.Value %}",
+                    "libraryIter": "{% $states.input.library %}"
                   }
                 }
               }
@@ -236,7 +238,7 @@
     },
     "FastqListRow Event Shower Complete": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::events:putEvents.waitForTaskToken",
+      "Resource": "arn:aws:states:::events:putEvents",
       "Arguments": {
         "Entries": [
           {

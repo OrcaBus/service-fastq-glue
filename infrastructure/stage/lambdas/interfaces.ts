@@ -83,6 +83,7 @@ export const lambdaToRequirementsMap: LambdaToRequirementsMapType = {
     needsOrcabusApiToolsLayer: true,
   },
   getSampleDemultiplexStats: {
+    needsOrcabusApiToolsLayer: true,
     needsAwsReadAccess: true,
   },
   // Legacy lambdas (for clag glue)

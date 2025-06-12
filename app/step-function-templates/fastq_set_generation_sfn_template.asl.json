@@ -45,7 +45,7 @@
       "ItemProcessor": {
         "ProcessorConfig": {
           "Mode": "DISTRIBUTED",
-          "ExecutionType": "EXPRESS"
+          "ExecutionType": "STANDARD"
         },
         "StartAt": "Get vars inside map",
         "States": {
