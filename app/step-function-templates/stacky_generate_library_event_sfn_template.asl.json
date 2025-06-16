@@ -177,7 +177,7 @@
                             "version": "${__samplesheet_metadata_union_payload_version__}",
                             "data": {
                               "instrumentRunId": "{% $instrumentRunIdMapIter %}",
-                              "library": "{% /* https://try.jsonata.org/u147L2Tlv */\n{\n  \"orcabusId\": $states.input.libraryObj.orcabusId,\n  \"libraryId\": $states.input.libraryObj.libraryId,\n  \"workflow\": $states.input.libraryObj.workflow,\n  \"type\": $states.input.libraryObj.type,\n  \"assay\": $states.input.libraryObj.assay,\n  \"coverage\": $states.input.libraryObj.coverage\n} %}",
+                              "library": "{% /* https://try.jsonata.org/u147L2Tlv */\n{\n  \"orcabusId\": $states.input.libraryObj.orcabusId,\n  \"libraryId\": $states.input.libraryObj.libraryId,\n  \"workflow\": $states.input.libraryObj.workflow,\n  \"type\": $states.input.libraryObj.type,\n  \"assay\": $states.input.libraryObj.assay,\n  \"coverage\": $states.input.libraryObj.coverage,\n  \"phenotype\": $states.input.libraryObj.phenotype\n} %}",
                               "sample": "{% $states.input.libraryObj.sample %}",
                               "subject": "{% $states.input.libraryObj.subject %}",
                               "bclconvertDataRows": "{% /* https://try.jsonata.org/rW0rrJnyr */\n[$map(\n  $states.input.fastqListRowObjectsList,\n  function($fastqListRowIter){\n      {\n          \"sampleId\": $fastqListRowIter.library.libraryId,\n          \"index\": $split($fastqListRowIter.index, \"+\")[0],\n          \"index2\": $split($fastqListRowIter.index, \"+\")[1] ? $split($fastqListRowIter.index, \"+\")[1] : null,\n          \"lane\": $fastqListRowIter.lane\n      }\n  }\n)] %}",
