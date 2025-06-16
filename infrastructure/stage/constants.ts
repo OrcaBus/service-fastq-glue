@@ -41,6 +41,14 @@ export const AWS_S3_PRIMARY_DATA_PREFIX: Record<StageName, string> = {
   ['PROD']: 'byob-icav2/production/primary/',
 };
 
+/*
+Lab Metadata constants
+*/
+// Internal constants required for the stack
+export const METADATA_TRACKING_SHEET_ID_SSM_PARAMETER_PATH =
+  '/umccr/google/drive/tracking_sheet_id';
+export const GDRIVE_AUTH_JSON_SSM_PARAMETER_PATH = '/umccr/google/drive/lims_service_account_json';
+
 /* Stacky Constants */
 
 export const SAMPLESHEET_SHOWER_STATE_CHANGE_DETAIL_TYPE = 'SamplesheetShowerStateChange';
