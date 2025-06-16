@@ -7,12 +7,17 @@ import {
 } from './interfaces';
 import { PythonUvFunction } from '@orcabus/platform-cdk-constructs/lambda';
 import path from 'path';
-import { LAMBDA_DIR } from '../constants';
+import {
+  GDRIVE_AUTH_JSON_SSM_PARAMETER_PATH,
+  LAMBDA_DIR,
+  METADATA_TRACKING_SHEET_ID_SSM_PARAMETER_PATH,
+} from '../constants';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { Duration } from 'aws-cdk-lib';
 import { camelCaseToSnakeCase } from '../utils';
 import { Construct } from 'constructs';
 import { NagSuppressions } from 'cdk-nag';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 
 export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): LambdaObject {
   const lambdaNameToSnakeCase = camelCaseToSnakeCase(props.lambdaName);
@@ -47,6 +52,38 @@ export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): 
       ],
       true
     );
+  }
+
+  if (props.lambdaName == 'createFastqSetObject') {
+    const metadataTrackingSheetIdSsmParameterObj =
+      ssm.StringParameter.fromSecureStringParameterAttributes(
+        scope,
+        'metadata_tracking_sheet_id_ssm_parameter',
+        {
+          parameterName: METADATA_TRACKING_SHEET_ID_SSM_PARAMETER_PATH,
+        }
+      );
+    const gDriveAuthJsonSsmParameterObj = ssm.StringParameter.fromSecureStringParameterAttributes(
+      scope,
+      'gdrive_auth_json_ssm_parameter',
+      {
+        parameterName: GDRIVE_AUTH_JSON_SSM_PARAMETER_PATH,
+      }
+    );
+
+    /* Add environment variables to the lambda function */
+    lambdaFunction.addEnvironment(
+      'METADATA_TRACKING_SHEET_ID_SSM_PARAMETER_PATH',
+      metadataTrackingSheetIdSsmParameterObj.parameterName
+    );
+    lambdaFunction.addEnvironment(
+      'GDRIVE_AUTH_JSON_SSM_PARAMETER_PATH',
+      gDriveAuthJsonSsmParameterObj.parameterName
+    );
+
+    // Add permissions to the lambda function
+    metadataTrackingSheetIdSsmParameterObj.grantRead(lambdaFunction.currentVersion);
+    gDriveAuthJsonSsmParameterObj.grantRead(lambdaFunction.currentVersion);
   }
 
   // AwsSolutions-L1 - We'll migrate to PYTHON_3_13 ASAP, soz
