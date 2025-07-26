@@ -8,7 +8,6 @@ from orcabus_api_tools.fastq import (
     get_fastq, add_read_set,
     add_read_count, detach_read_set
 )
-from orcabus_api_tools.fastq.models import BoolAllEnum
 
 
 def handler(event, context):
@@ -26,7 +25,7 @@ def handler(event, context):
 
     # Get fastq objects from fastq list
     fastq_objects = list(map(
-        lambda fastq_id_iter_: get_fastq(fastq_id_iter_, includeS3Details=BoolAllEnum.true.value),
+        lambda fastq_id_iter_: get_fastq(fastq_id_iter_, includeS3Details=True),
         fastq_id_list
     ))
 

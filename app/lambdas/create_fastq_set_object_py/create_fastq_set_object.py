@@ -57,6 +57,8 @@ The fastq set object has the following structure:
 }
 
 """
+
+# Imports
 import typing
 from typing import Optional, List
 from pathlib import Path
@@ -65,8 +67,6 @@ import boto3
 import re
 from os import environ
 import json
-
-# Imports
 import pandas as pd
 from datetime import datetime
 
@@ -75,9 +75,9 @@ from gspread_pandas import Spread
 # Layer imports
 from orcabus_api_tools.fastq import (
     create_fastq_set_object,
-    create_fastq_list_row_object, allow_additional_fastqs_to_fastq_set,
+    create_fastq_object, allow_additional_fastqs_to_fastq_set,
     disallow_additional_fastqs_to_fastq_set,
-    link_fastq_list_row_to_fastq_set,
+    link_fastq_to_fastq_set,
     set_is_not_current_fastq_set,
     get_fastq_sets
 )
@@ -134,7 +134,7 @@ def merge_dataframes(
     return merged_df
 
 
-def generate_fastq_list_row_list_from_inputs(
+def generate_fastq_list_from_inputs(
         instrument_run_id: str,
         bclconvert_data_df: pd.DataFrame,
 ) -> List[FastqListRow]:
@@ -145,7 +145,7 @@ def generate_fastq_list_row_list_from_inputs(
     :return:
     """
     return list(map(
-        lambda index_row_iter_: create_fastq_list_row_object(
+        lambda index_row_iter_: create_fastq_object(
             index=index_row_iter_[1]["index"],
             lane=index_row_iter_[1]["lane"],
             instrumentRunId=instrument_run_id,
@@ -391,16 +391,16 @@ def append_to_existing_fastq_set(
     allow_additional_fastqs_to_fastq_set(fastq_set_id=fastq_set['id'])
 
     # Create the new fastq list row objects from the inputs
-    new_fastq_list_rows = generate_fastq_list_row_list_from_inputs(
+    new_fastq_list = generate_fastq_list_from_inputs(
         instrument_run_id=instrument_run_id,
         bclconvert_data_df=bclconvert_data_df
     )
 
     # Link each of the fastqs to the fastq set
-    for new_fastq_list_row in new_fastq_list_rows:
-        link_fastq_list_row_to_fastq_set(
+    for new_fastq in new_fastq_list:
+        link_fastq_to_fastq_set(
             fastq_set_id=fastq_set['id'],
-            fastq_id=new_fastq_list_row['id']
+            fastq_id=new_fastq['id']
         )
 
     # Disable adding additional fastqs to the existing fastq set
