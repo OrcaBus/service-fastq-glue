@@ -19,9 +19,9 @@ from typing import Dict, List, Optional, Union
 import re
 
 
+# Orcabus API tool imports
 from orcabus_api_tools.sequence import (
-    get_sequence_object_from_instrument_run_id,
-    get_sample_sheet_from_orcabus_id
+    get_sample_sheet_from_instrument_run_id
 )
 
 
@@ -60,7 +60,7 @@ def get_sample_bclconvert_data_from_v2_samplesheet(
 
 
 def get_cycle_count_from_override_cycles(override_cycles: str) -> int:
-    read_cycle_regex_match = re.findall("(?:[yY])([0-9]+)", override_cycles)
+    read_cycle_regex_match = re.findall(f"[yY]([0-9]+)", override_cycles)
     if read_cycle_regex_match is None or len(read_cycle_regex_match) == 0:
         raise ValueError("Invalid override_cycles format")
     if len(read_cycle_regex_match) == 1:
@@ -92,9 +92,7 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
     # Get the sequence orcabus id
 
     # Read the samplesheet
-    sequence_orcabus_id = get_sequence_object_from_instrument_run_id(instrument_run_id)['orcabusId']
-
-    samplesheet: Dict = get_sample_sheet_from_orcabus_id(sequence_orcabus_id)['sampleSheetContent']
+    samplesheet: Dict = get_sample_sheet_from_instrument_run_id(instrument_run_id)['sampleSheetContent']
 
     # Get override cycles from the samplesheet settings section
     global_cycle_count = get_global_cycle_count(samplesheet)
@@ -123,18 +121,18 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
 #     from os import environ
 #     environ['AWS_PROFILE'] = 'umccr-production'
 #     environ['AWS_REGION'] = 'ap-southeast-2'
-#     environ['HOSTNAME_SSM_PARAMETER'] = '/hosted_zone/umccr/name'
+#     environ['HOSTNAME_SSM_PARAMETER_NAME'] = '/hosted_zone/umccr/name'
 #     environ['ORCABUS_TOKEN_SECRET_ID'] = 'orcabus/token-service-jwt'
 #     print(json.dumps(
 #         handler(
 #             {
-#                 "instrumentRunId": "250307_A00130_0360_BHCLW2DSXF",
+#                 "instrumentRunId": "250724_A01052_0269_AHFHWJDSXF",
 #                 "libraryIdList": [
-#                     "L2500185",
-#                     "L2500181",
-#                     "L2500175",
-#                     "L2500176",
-#                     "L2500180",
+#                     "L2500214",
+#                     "L2500219",
+#                     "L2500222",
+#                     # ...
+#                     "LPRJ251220"
 #                 ]
 #             },
 #             None
@@ -145,62 +143,45 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
 #     # {
 #     #     "bclConvertDataByLibrary": [
 #     #         {
-#     #             "libraryId": "L2500185",
+#     #             "libraryId": "L2500214",
 #     #             "bclConvertData": [
 #     #                 {
-#     #                     "libraryId": "L2500185",
-#     #                     "index": "TTAATCAG+CTTCGCCT",
-#     #                     "lane": 4,
-#     #                     "cycleCount": 286
-#     #                 }
-#     #             ]
-#     #         },
-#     #         {
-#     #             "libraryId": "L2500181",
-#     #             "bclConvertData": [
-#     #                 {
-#     #                     "libraryId": "L2500181",
-#     #                     "index": "GGCTTACT+AGGGAAAG",
-#     #                     "lane": 2,
+#     #                     "libraryId": "L2500214",
+#     #                     "index": "ATTCAGAA+AGGCTATA",
+#     #                     "lane": 1,
 #     #                     "cycleCount": 302
 #     #                 }
 #     #             ]
 #     #         },
 #     #         {
-#     #             "libraryId": "L2500175",
+#     #             "libraryId": "L2500219",
 #     #             "bclConvertData": [
 #     #                 {
-#     #                     "libraryId": "L2500175",
-#     #                     "index": "AACTGTAG+TGCGGCGT",
-#     #                     "lane": 3,
-#     #                     "cycleCount": 302
-#     #                 },
-#     #                 {
-#     #                     "libraryId": "L2500175",
-#     #                     "index": "AACTGTAG+TGCGGCGT",
+#     #                     "libraryId": "L2500219",
+#     #                     "index": "ATTACTCG+GACTTCCT",
 #     #                     "lane": 4,
 #     #                     "cycleCount": 302
 #     #                 }
 #     #             ]
 #     #         },
 #     #         {
-#     #             "libraryId": "L2500176",
+#     #             "libraryId": "L2500222",
 #     #             "bclConvertData": [
 #     #                 {
-#     #                     "libraryId": "L2500176",
-#     #                     "index": "GGTCACGA+CATAATAC",
+#     #                     "libraryId": "L2500222",
+#     #                     "index": "CGTAGCTC+CATCCGAA",
 #     #                     "lane": 3,
 #     #                     "cycleCount": 302
 #     #                 }
 #     #             ]
 #     #         },
 #     #         {
-#     #             "libraryId": "L2500180",
+#     #             "libraryId": "LPRJ251220",
 #     #             "bclConvertData": [
 #     #                 {
-#     #                     "libraryId": "L2500180",
-#     #                     "index": "TCTTGTTT+GTGAAAGG",
-#     #                     "lane": 2,
+#     #                     "libraryId": "LPRJ251220",
+#     #                     "index": "ACAGTAACTA+AACGAACTGT",
+#     #                     "lane": 4,
 #     #                     "cycleCount": 302
 #     #                 }
 #     #             ]

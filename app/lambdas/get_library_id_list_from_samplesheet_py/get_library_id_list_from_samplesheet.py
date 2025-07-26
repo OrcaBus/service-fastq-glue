@@ -25,8 +25,7 @@ from typing import Tuple, Dict, List
 
 # Construct imports
 from orcabus_api_tools.sequence import (
-    get_sequence_object_from_instrument_run_id,
-    get_library_ids_in_sequence
+    get_libraries_from_instrument_run_id
 )
 
 # Type hints
@@ -68,26 +67,23 @@ def handler(event, context) -> Dict[str, List[str]]:
     # Get the sample id and samplesheet uri from the event
     instrument_run_id = event['instrumentRunId']
 
-    # Get the sequence object orcabus id from the instrument run id
-    sequence_orcabus_id = get_sequence_object_from_instrument_run_id(instrument_run_id)['orcabusId']
-
-    # Get the libraries from the sequence object
+    # Get the libraries from the instrument run id via the sequence run manager
     return {
-        "libraryIdList": list(sorted(set(get_library_ids_in_sequence(sequence_orcabus_id))))
+        "libraryIdList": list(sorted(set(get_libraries_from_instrument_run_id(instrument_run_id))))
     }
 
 
 # if __name__ == "__main__":
 #     import json
 #     from os import environ
-#     environ['AWS_PROFILE'] = 'umccr-development'
+#     environ['AWS_PROFILE'] = 'umccr-production'
 #     environ['AWS_REGION'] = 'ap-southeast-2'
 #     environ['HOSTNAME_SSM_PARAMETER_NAME'] = '/hosted_zone/umccr/name'
 #     environ['ORCABUS_TOKEN_SECRET_ID'] = 'orcabus/token-service-jwt'
 #     print(json.dumps(
 #         handler(
 #             {
-#                 "instrumentRunId": "241024_A00130_0336_BHW7MVDSXC"
+#                 "instrumentRunId": "250724_A01052_0269_AHFHWJDSXF"
 #             },
 #             None
 #         ),
