@@ -25,12 +25,12 @@ import typing
 import boto3
 from pathlib import Path
 from urllib.parse import urlparse
-from typing import Tuple, Dict, List, Union, Any, Optional
+from typing import Tuple, Dict, List, Any, Optional
+import logging
 
 # Construct imports
 from orcabus_api_tools.sequence import (
-    get_sequence_object_from_instrument_run_id,
-    get_sample_sheet_from_orcabus_id
+    get_sample_sheet_from_instrument_run_id
 )
 
 # Type hints
@@ -112,8 +112,9 @@ def get_est_count_from_samplesheet(
 ):
     """
     Get the estimated count from the samplesheet
-    :param row_iter_:
+    :param series_iter_:
     :param samplesheet_dict:
+    :param global_cycle_count:
     :return:
     """
     return list(map(
@@ -136,11 +137,12 @@ def get_rows_demux_stats_df(
         sample_id_list: List[str],
         demux_stats_df: pd.DataFrame,
         samplesheet_dict: Dict[str, Dict[str, Any]]
-) -> List[Dict[str, Union[str, int]]]:
+) -> pd.DataFrame:
     """
     Get the file names from the demultiplex dataframe
-    :param sample_id:
+    :param sample_id_list:
     :param demux_stats_df:
+    :param samplesheet_dict:
     :return:
     """
     return (
@@ -178,14 +180,10 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
     demux_stats_df = read_demux_stats_csv(demux_stats_uri)
 
     # Get the sequence id from the instrument run id
-    sequence_id = get_sequence_object_from_instrument_run_id(
-        instrumentRunId
-    )['orcabusId']
+    samplesheet_dict = get_sample_sheet_from_instrument_run_id(instrumentRunId).get('sampleSheetContent', {})
 
-    # Get the samplesheet from the sequence id
-    samplesheet_dict = get_sample_sheet_from_orcabus_id(
-        sequence_id
-    )['sampleSheetContent']
+    if not samplesheet_dict:
+        logging.warning("Samplesheet dict is empty, cannot process demux stats.")
 
     demux_stats_df = get_rows_demux_stats_df(
         sample_id_list,
@@ -214,18 +212,23 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
 #     import json
 #     from os import environ
 #
-#     environ['AWS_PROFILE'] = 'umccr-development'
+#     environ['AWS_PROFILE'] = 'umccr-production'
 #     environ['AWS_REGION'] = 'ap-southeast-2'
-#     environ['HOSTNAME_SSM_PARAMETER'] = '/hosted_zone/umccr/name'
+#     environ['HOSTNAME_SSM_PARAMETER_NAME'] = '/hosted_zone/umccr/name'
 #     environ['ORCABUS_TOKEN_SECRET_ID'] = 'orcabus/token-service-jwt'
 #     print(json.dumps(
 #         handler(
 #             {
-#                 "sampleIdList": ["L2401544"],
-#                 "demuxStatsUri": "s3://pipeline-dev-cache-503977275616-ap-southeast-2/byob-icav2/development/primary/241024_A00130_0336_BHW7MVDSXC/20250324abcd1234/Reports/Demultiplex_Stats.csv",
-#                 "instrumentRunId": "241024_A00130_0336_BHW7MVDSXC"
+#                 "sampleIdList": [
+#                     "LPRJ241540",
+#                     "LPRJ241542",
+#                     "LPRJ251219",
+#                     "LPRJ251220"
+#                 ],
+#                 "demuxStatsUri": "s3://pipeline-prod-cache-503977275616-ap-southeast-2/byob-icav2/production/primary/250724_A01052_0269_AHFHWJDSXF/2025072611867654/Reports/Demultiplex_Stats.csv",
+#                 "instrumentRunId": "250724_A01052_0269_AHFHWJDSXF"
 #             },
-#             None
+#                 None
 #         ),
 #         indent=4
 #     ))
@@ -233,19 +236,46 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
 #     # {
 #     #     "demuxDataBySample": [
 #     #         {
-#     #             "sampleId": "L2401544",
+#     #             "sampleId": "LPRJ241540",
 #     #             "demuxData": [
 #     #                 {
-#     #                     "sampleId": "L2401544",
+#     #                     "sampleId": "LPRJ241540",
 #     #                     "lane": 2,
-#     #                     "readCount": 56913395,
-#     #                     "baseCountEst": 17187845290
-#     #                 },
+#     #                     "readCount": 104302869,
+#     #                     "baseCountEst": 31499466438
+#     #                 }
+#     #             ]
+#     #         },
+#     #         {
+#     #             "sampleId": "LPRJ241542",
+#     #             "demuxData": [
 #     #                 {
-#     #                     "sampleId": "L2401544",
-#     #                     "lane": 3,
-#     #                     "readCount": 62441372,
-#     #                     "baseCountEst": 18857294344
+#     #                     "sampleId": "LPRJ241542",
+#     #                     "lane": 2,
+#     #                     "readCount": 131864398,
+#     #                     "baseCountEst": 39823048196
+#     #                 }
+#     #             ]
+#     #         },
+#     #         {
+#     #             "sampleId": "LPRJ251219",
+#     #             "demuxData": [
+#     #                 {
+#     #                     "sampleId": "LPRJ251219",
+#     #                     "lane": 4,
+#     #                     "readCount": 532167142,
+#     #                     "baseCountEst": 160714476884
+#     #                 }
+#     #             ]
+#     #         },
+#     #         {
+#     #             "sampleId": "LPRJ251220",
+#     #             "demuxData": [
+#     #                 {
+#     #                     "sampleId": "LPRJ251220",
+#     #                     "lane": 4,
+#     #                     "readCount": 627957040,
+#     #                     "baseCountEst": 189643026080
 #     #                 }
 #     #             ]
 #     #         }
