@@ -60,7 +60,7 @@ def get_sample_bclconvert_data_from_v2_samplesheet(
 
 
 def get_cycle_count_from_override_cycles(override_cycles: str) -> int:
-    read_cycle_regex_match = re.findall(f"[yY]([0-9]+)", override_cycles)
+    read_cycle_regex_match = re.findall("[yY]([0-9]+)", override_cycles)
     if read_cycle_regex_match is None or len(read_cycle_regex_match) == 0:
         raise ValueError("Invalid override_cycles format")
     if len(read_cycle_regex_match) == 1:
