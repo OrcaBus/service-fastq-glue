@@ -25,6 +25,7 @@ import {
   SAMPLESHEET_SHOWER_COMPLETE_STATUS,
   SAMPLESHEET_SHOWER_STARTING_STATUS,
   SAMPLESHEET_SHOWER_STATE_CHANGE_DETAIL_TYPE,
+  SFN_PREFIX,
   STACK_EVENT_SOURCE,
   STACKY_FASTQ_LIST_ROW_SHOWER_STATE_CHANGE,
   STACKY_FASTQ_LIST_ROW_STATE_CHANGE,
@@ -195,7 +196,7 @@ function buildStepFunction(scope: Construct, props: BuildSfnProps): SfnObject {
 
   /* Create the state machine definition substitutions */
   const stateMachine = new sfn.StateMachine(scope, props.stateMachineName, {
-    stateMachineName: props.stateMachineName,
+    stateMachineName: `${SFN_PREFIX}${props.stateMachineName}`,
     definitionBody: sfn.DefinitionBody.fromFile(
       path.join(STEP_FUNCTIONS_DIR, sfnNameToSnakeCase + '_sfn_template.asl.json')
     ),

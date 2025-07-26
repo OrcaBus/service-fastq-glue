@@ -23,6 +23,9 @@ export const BSSH_FASTQ_TO_AWS_COPY_STATUS = 'SUCCEEDED';
 
 /* Local stack constants */
 export const STACK_EVENT_SOURCE = 'orcabus.fastqglue';
+export const SFN_PREFIX = 'fastq-glue-';
+
+/* Event Details */
 export const FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE = 'FastqListRowsAdded';
 export const READ_SETS_ADDED_EVENT_DETAIL_TYPE = 'ReadSetsAdded';
 
