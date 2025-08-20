@@ -24,7 +24,8 @@
             "Lambda.ServiceException",
             "Lambda.AWSLambdaException",
             "Lambda.SdkClientException",
-            "Lambda.TooManyRequestsException"
+            "Lambda.TooManyRequestsException",
+            "States.TaskFailed"
           ],
           "IntervalSeconds": 1,
           "MaxAttempts": 3,
@@ -76,7 +77,8 @@
                   "Lambda.ServiceException",
                   "Lambda.AWSLambdaException",
                   "Lambda.SdkClientException",
-                  "Lambda.TooManyRequestsException"
+                  "Lambda.TooManyRequestsException",
+                  "States.TaskFailed"
                 ],
                 "IntervalSeconds": 1,
                 "MaxAttempts": 3,
@@ -117,7 +119,8 @@
                         "Lambda.ServiceException",
                         "Lambda.AWSLambdaException",
                         "Lambda.SdkClientException",
-                        "Lambda.TooManyRequestsException"
+                        "Lambda.TooManyRequestsException",
+                        "States.TaskFailed"
                       ],
                       "IntervalSeconds": 1,
                       "MaxAttempts": 3,
