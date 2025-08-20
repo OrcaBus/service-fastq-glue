@@ -498,13 +498,6 @@ def handler(event, context):
         # Now we pull in the metadata tracking sheet
         set_google_secrets()
 
-        if is_topup(library_id):
-            return append_to_existing_fastq_set(
-                library_id=library_id,
-                instrument_run_id=instrument_run_id,
-                bclconvert_data_df=bclconvert_data_df
-            )
-
         if is_rerun(library_id):
             return replace_current_fastq_set(
                 library_id=library_id,
@@ -512,9 +505,10 @@ def handler(event, context):
                 bclconvert_data_df=bclconvert_data_df
             )
 
-        raise ValueError(
-            f"Found library {library_id} on run {instrument_run_id} but already exists in the fastq manager with another instrument run id"
-            f"and could not find a topup or rerun in the metadata tracking sheet"
+        return append_to_existing_fastq_set(
+            library_id=library_id,
+            instrument_run_id=instrument_run_id,
+            bclconvert_data_df=bclconvert_data_df
         )
 
     # Otherwise
