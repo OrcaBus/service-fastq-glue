@@ -141,7 +141,17 @@
                       }
                     ]
                   },
-                  "Next": "Get fastq list rows from fastq set id (in instrument run id)"
+                  "Next": "Get fastq list rows from fastq set id (in instrument run id)",
+                  "HeartbeatSeconds": 3600,
+                  "Retry": [
+                    {
+                      "ErrorEquals": ["States.HeartbeatTimeout"],
+                      "BackoffRate": 2,
+                      "IntervalSeconds": 1,
+                      "MaxAttempts": 1,
+                      "Comment": "Heartbeat Timeout"
+                    }
+                  ]
                 },
                 "Get fastq list rows from fastq set id (in instrument run id)": {
                   "Type": "Task",
