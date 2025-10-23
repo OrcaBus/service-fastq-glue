@@ -46,7 +46,7 @@ function buildSequenceRunManagerStateChangeEventRule(
   });
 }
 
-function buildWorkflowRunStateChangeEventRule(
+function buildWorkflowRunStateChangeLegacyEventRule(
   scope: Construct,
   props: WorkflowRunStateChangeRuleProps
 ): Rule {
@@ -58,6 +58,26 @@ function buildWorkflowRunStateChangeEventRule(
       detail: {
         status: [{ 'equals-ignore-case': props.eventStatus }],
         workflowName: [{ 'equals-ignore-case': props.workflowName }],
+      },
+    },
+    eventBus: props.eventBus,
+  });
+}
+
+function buildWorkflowRunStateChangeEventRule(
+  scope: Construct,
+  props: WorkflowRunStateChangeRuleProps
+): Rule {
+  return new events.Rule(scope, props.ruleName, {
+    ruleName: `${STACK_PREFIX}--${props.ruleName}`,
+    eventPattern: {
+      source: [props.eventSource],
+      detailType: [props.eventDetailType],
+      detail: {
+        status: [{ 'equals-ignore-case': props.eventStatus }],
+        workflow: {
+          name: [{ 'equals-ignore-case': props.workflowName }],
+        },
       },
     },
     eventBus: props.eventBus,
@@ -116,6 +136,20 @@ export function buildAllEventRules(
             eventBus: props.eventBus,
             eventDetailType: SEQUENCE_RUN_MANAGER_STATE_CHANGE_EVENT_DETAIL_TYPE,
             eventStatus: SEQUENCE_RUN_MANAGER_EVENT_STATUS,
+          }),
+        });
+        break;
+      }
+      case 'listenLegacyBsshFastqCopySucceededRule': {
+        eventBridgeRuleObjects.push({
+          ruleName: ruleName,
+          ruleObject: buildWorkflowRunStateChangeLegacyEventRule(scope, {
+            ruleName: ruleName,
+            eventSource: WORKFLOW_MANAGER_EVENT_SOURCE,
+            eventBus: props.eventBus,
+            eventDetailType: WORKFLOW_RUN_STATE_CHANGE_EVENT_DETAIL_TYPE,
+            eventStatus: BSSH_TO_AWS_S3_COPY_STATUS,
+            workflowName: BSSH_TO_AWS_S3_COPY_WORKFLOW_NAME,
           }),
         });
         break;

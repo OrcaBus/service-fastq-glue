@@ -58,6 +58,7 @@ function buildFastqReadSetsAddedToGenerateFqlrEventBridgeTarget(
 export function buildAllEventBridgeTargets(props: EventBridgeTargetsProps) {
   for (const eventBridgeTargetsName of eventBridgeTargetsNameList) {
     switch (eventBridgeTargetsName) {
+      // SRM events
       case 'sequenceRunManagerSucceededToFastqSetGenerationSfn': {
         buildSrmSucceededToFastqSetGenerationSfnEventBridgeTarget(<AddSfnAsEventBridgeTargetProps>{
           eventBridgeRuleObj: props.eventBridgeRuleObjects.find(
@@ -65,6 +66,22 @@ export function buildAllEventBridgeTargets(props: EventBridgeTargetsProps) {
           )?.ruleObject,
           stateMachineObj: props.stepFunctionObjects.find(
             (eventBridgeObject) => eventBridgeObject.stateMachineName === 'fastqSetGeneration'
+          )?.stateMachineObj,
+        });
+        break;
+      }
+
+      // BSSH to AWS WRSC Events
+      case 'legacyBsshFastqCopySucceededToFastqSetAddReadSetSfn': {
+        buildBsshFastqCopySucceededToFastqSetAddReadSetEventBridgeTarget(<
+          AddSfnAsEventBridgeTargetProps
+        >{
+          eventBridgeRuleObj: props.eventBridgeRuleObjects.find(
+            (eventBridgeObject) =>
+              eventBridgeObject.ruleName === 'listenLegacyBsshFastqCopySucceededRule'
+          )?.ruleObject,
+          stateMachineObj: props.stepFunctionObjects.find(
+            (eventBridgeObject) => eventBridgeObject.stateMachineName === 'fastqSetAddReadSet'
           )?.stateMachineObj,
         });
         break;
@@ -82,6 +99,8 @@ export function buildAllEventBridgeTargets(props: EventBridgeTargetsProps) {
         });
         break;
       }
+
+      // Fastq Glue Internal Events (for legacy workflows)
       case 'fastqGlueFastqSetsAddedEventToStackyGenerateLibraryEventsSfn': {
         buildFastqSetsAddedToGenerateLibraryEventsEventBridgeTarget(<
           AddSfnAsEventBridgeTargetProps
