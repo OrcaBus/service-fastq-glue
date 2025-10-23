@@ -25,8 +25,8 @@ import {
   SAMPLESHEET_SHOWER_COMPLETE_STATUS,
   SAMPLESHEET_SHOWER_STARTING_STATUS,
   SAMPLESHEET_SHOWER_STATE_CHANGE_DETAIL_TYPE,
-  SFN_PREFIX,
-  STACK_EVENT_SOURCE,
+  STACK_PREFIX,
+  STACK_SOURCE,
   STACKY_FASTQ_LIST_ROW_SHOWER_STATE_CHANGE,
   STACKY_FASTQ_LIST_ROW_STATE_CHANGE,
   START_SAMPLESHEET_SHOWER_PAYLOAD_VERSION,
@@ -75,7 +75,7 @@ function createStateMachineDefinitionSubstitutions(props: BuildSfnProps): {
     READ_SETS_ADDED_EVENT_DETAIL_TYPE;
 
   /* Substitute the event source in the state machine definition */
-  definitionSubstitutions['__stack_event_source__'] = STACK_EVENT_SOURCE;
+  definitionSubstitutions['__stack_event_source__'] = STACK_SOURCE;
 
   /* Stacky glue substitutions - that we will oneday be able to delete */
   definitionSubstitutions['__samplesheet_shower_started_detail_type__'] =
@@ -196,7 +196,7 @@ function buildStepFunction(scope: Construct, props: BuildSfnProps): SfnObject {
 
   /* Create the state machine definition substitutions */
   const stateMachine = new sfn.StateMachine(scope, props.stateMachineName, {
-    stateMachineName: `${SFN_PREFIX}${props.stateMachineName}`,
+    stateMachineName: `${STACK_PREFIX}--${props.stateMachineName}`,
     definitionBody: sfn.DefinitionBody.fromFile(
       path.join(STEP_FUNCTIONS_DIR, sfnNameToSnakeCase + '_sfn_template.asl.json')
     ),
