@@ -5,6 +5,7 @@ import { SfnObject } from '../step-functions/interfaces';
 
 export type EventBridgeTargetsNameList =
   | 'sequenceRunManagerSucceededToFastqSetGenerationSfn'
+  | 'legacyBsshFastqCopySucceededToFastqSetAddReadSetSfn'
   | 'bsshFastqCopySucceededToFastqSetAddReadSetSfn'
   // Legacy EventBridge targets
   | 'fastqGlueFastqSetsAddedEventToStackyGenerateLibraryEventsSfn'
@@ -12,6 +13,7 @@ export type EventBridgeTargetsNameList =
 
 export const eventBridgeTargetsNameList: Array<EventBridgeTargetsNameList> = [
   'sequenceRunManagerSucceededToFastqSetGenerationSfn',
+  'legacyBsshFastqCopySucceededToFastqSetAddReadSetSfn',
   'bsshFastqCopySucceededToFastqSetAddReadSetSfn',
   // Legacy EventBridge targets
   'fastqGlueFastqSetsAddedEventToStackyGenerateLibraryEventsSfn',

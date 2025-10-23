@@ -2,6 +2,7 @@ import { IEventBus, Rule } from 'aws-cdk-lib/aws-events';
 
 export type EventBridgeNameList =
   | 'listenSrmSucceededRule'
+  | 'listenLegacyBsshFastqCopySucceededRule'
   | 'listenBsshFastqCopySucceededRule'
   // Legacy rules
   | 'listenFastqGlueFastqListRowsAdded'
@@ -11,6 +12,7 @@ export const eventBridgeNameList: EventBridgeNameList[] = [
   /* Listen to bclconvert workflow status changes */
   'listenSrmSucceededRule',
   /* Listen to bssh Fastq Copy Ready rule */
+  'listenLegacyBsshFastqCopySucceededRule',
   'listenBsshFastqCopySucceededRule',
   /* Legacy rules */
   // Clag - add library events rule
