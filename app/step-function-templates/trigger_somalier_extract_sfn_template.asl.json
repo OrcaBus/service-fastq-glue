@@ -1,0 +1,121 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Set vars",
+  "States": {
+    "Set vars": {
+      "Type": "Pass",
+      "Next": "Find bam file by library id",
+      "Assign": {
+        "workflowRunObj": "{% $states.input.workflowObj %}"
+      }
+    },
+    "Find bam file by library id": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Arguments": {
+        "FunctionName": "${__get_bam_by_library_id_lambda_function_arn__}",
+        "Payload": {
+          "workflowRunObj": "{% $workflowRunObj %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "For each bam by library id",
+      "Output": {},
+      "Assign": {
+        "bamFileByLibraryId": "{% $states.result.Payload.bamFileByLibraryId %}",
+        "referenceName": "{% $states.result.Payload.referenceName %}"
+      }
+    },
+    "For each bam by library id": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Set map vars",
+        "States": {
+          "Set map vars": {
+            "Type": "Pass",
+            "Next": "Get current fastq set for library",
+            "Assign": {
+              "libraryIdIter": "{% $states.input.libraryId %}",
+              "bamUriIter": "{% $states.input.bamUri %}"
+            }
+          },
+          "Get current fastq set for library": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Arguments": {
+              "FunctionName": "${__get_fastq_set_id_by_library_lambda_function_arn__}",
+              "Payload": {
+                "libraryId": "{% $libraryIdIter %}"
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 1,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "Next": "Run Extract Fingerprint",
+            "Assign": {
+              "fastqSetId": "{% $states.result.Payload.fastqSetId %}"
+            },
+            "Output": {}
+          },
+          "Run Extract Fingerprint": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Arguments": {
+              "FunctionName": "${__run_extract_fingerprint_lambda_function_arn__}",
+              "Payload": {
+                "fastqSetId": "{% $fastqSetId %}",
+                "bamUri": "{% $bamUriIter %}"
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 1,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "End": true,
+            "Output": {}
+          }
+        }
+      },
+      "End": true,
+      "Items": "{% $bamFileByLibraryId %}"
+    }
+  },
+  "QueryLanguage": "JSONata"
+}

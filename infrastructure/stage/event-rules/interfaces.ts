@@ -1,23 +1,20 @@
 import { IEventBus, Rule } from 'aws-cdk-lib/aws-events';
 
 export type EventBridgeNameList =
+  /* Listen to Srm SampleSheet status changes */
   | 'listenSrmSampleSheetStateChange'
-  | 'listenLegacyBsshFastqCopySucceededRule'
+  /* Listen to bssh Fastq Copy Ready rule */
   | 'listenBsshFastqCopySucceededRule'
-  // Legacy rules
-  | 'listenFastqGlueFastqListRowsAdded'
-  | 'listenFastqGlueReadSetsAdded';
+  /* Dragen WGTS DNA / TSO500 ctDNA */
+  | 'listenWorkflowWithBamRule';
 
 export const eventBridgeNameList: EventBridgeNameList[] = [
   /* Listen to Srm SampleSheet status changes */
   'listenSrmSampleSheetStateChange',
   /* Listen to bssh Fastq Copy Ready rule */
-  'listenLegacyBsshFastqCopySucceededRule',
   'listenBsshFastqCopySucceededRule',
-  /* Legacy rules */
-  // Clag - add library events rule
-  'listenFastqGlueFastqListRowsAdded',
-  'listenFastqGlueReadSetsAdded',
+  /* Listen to Workflow with Bam rule */
+  'listenWorkflowWithBamRule',
 ];
 
 /* EventBridge Interfaces */
@@ -45,8 +42,10 @@ export interface WorkflowRunStateChangeRuleProps extends EventBridgeRulePropsWit
 
 export type SequenceRunManagerRuleProps = EventBridgeRuleProps;
 
-export type FastqListRowAddedRuleProps = EventBridgeRuleProps;
-export type ReadSetsAddedRuleProps = EventBridgeRuleProps;
+export interface MultiWorkflowRunStateChangeRuleProps extends EventBridgeRulePropsWithStatus {
+  /* We also require the workflow name for both rules */
+  workflowNameList: string[];
+}
 
 export interface EventBridgeRulesProps {
   /* EventBridge Rules */

@@ -21,6 +21,11 @@ export const WORKFLOW_MANAGER_EVENT_SOURCE = 'orcabus.workflowmanager';
 export const BSSH_TO_AWS_S3_COPY_WORKFLOW_NAME = 'bssh-to-aws-s3';
 export const BSSH_TO_AWS_S3_COPY_STATUS = 'SUCCEEDED';
 
+/* Dragen Workflows (with bams) */
+export const DRAGEN_WGTS_DNA_WORKFLOW_NAME = 'dragen-wgts-dna';
+export const DRAGEN_WGTS_RNA_WORKFLOW_NAME = 'dragen-wgts-rna';
+export const DRAGEN_TSO500_CTDNA_WORKFLOW_NAME = 'dragen-tso500-ctdna';
+
 /* Local stack constants */
 export const STACK_SOURCE = 'orcabus.fastqglue';
 export const STACK_PREFIX = 'fastq-glue';
@@ -58,24 +63,3 @@ Lab Metadata constants
 export const METADATA_TRACKING_SHEET_ID_SSM_PARAMETER_PATH =
   '/umccr/google/drive/tracking_sheet_id';
 export const GDRIVE_AUTH_JSON_SSM_PARAMETER_PATH = '/umccr/google/drive/lims_service_account_json';
-
-/* Stacky Constants */
-
-export const SAMPLESHEET_SHOWER_STATE_CHANGE_DETAIL_TYPE = 'SamplesheetShowerStateChange';
-export const SAMPLESHEET_SHOWER_STARTING_STATUS = 'SamplesheetRegisteredEventShowerStarting';
-export const SAMPLESHEET_SHOWER_COMPLETE_STATUS = 'SamplesheetRegisteredEventShowerComplete';
-export const START_SAMPLESHEET_SHOWER_PAYLOAD_VERSION = '0.1.0';
-export const END_SAMPLESHEET_SHOWER_PAYLOAD_VERSION = '0.1.0';
-export const LIBRARY_IN_SAMPLESHEET_STATUS = 'LibraryInSamplesheet';
-export const SAMPLESHEET_METADATA_UNION_PAYLOAD_VERSION = '0.1.0';
-export const SAMPLESHEET_METADATA_UNION_DETAIL_TYPE = 'SamplesheetMetadataUnion';
-
-export const FASTQ_LIST_ROW_SHOWER_START_STATUS = 'FastqListRowEventShowerStarting';
-export const FASTQ_LIST_ROW_SHOWER_START_PAYLOAD_VERSION = '0.1.0';
-export const STACKY_FASTQ_LIST_ROW_SHOWER_STATE_CHANGE = 'FastqListRowShowerStateChange';
-export const STACKY_FASTQ_LIST_ROW_STATE_CHANGE = 'StackyFastqListRowStateChange';
-export const FASTQ_SYNC_DETAIL_TYPE = 'fastqSync';
-export const NEW_FASTQ_LIST_ROW_STATUS = 'newFastqListRow';
-export const NEW_FASTQ_LIST_ROW_PAYLOAD_VERSION = '0.1.0';
-export const FASTQ_LIST_ROW_EVENT_SHOWER_COMPLETE_STATUS = 'FastqListRowEventShowerComplete';
-export const FASTQ_LIST_ROW_SHOWER_COMPLETE_PAYLOAD_VERSION = '0.1.0';

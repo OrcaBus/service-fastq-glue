@@ -9,27 +9,10 @@ import {
 import { camelCaseToSnakeCase } from '../utils';
 import { Construct } from 'constructs';
 import {
-  END_SAMPLESHEET_SHOWER_PAYLOAD_VERSION,
-  FASTQ_LIST_ROW_EVENT_SHOWER_COMPLETE_STATUS,
-  FASTQ_LIST_ROW_SHOWER_COMPLETE_PAYLOAD_VERSION,
-  FASTQ_LIST_ROW_SHOWER_START_PAYLOAD_VERSION,
-  FASTQ_LIST_ROW_SHOWER_START_STATUS,
   FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE,
-  FASTQ_SYNC_DETAIL_TYPE,
-  LIBRARY_IN_SAMPLESHEET_STATUS,
-  NEW_FASTQ_LIST_ROW_PAYLOAD_VERSION,
-  NEW_FASTQ_LIST_ROW_STATUS,
   READ_SETS_ADDED_EVENT_DETAIL_TYPE,
-  SAMPLESHEET_METADATA_UNION_DETAIL_TYPE,
-  SAMPLESHEET_METADATA_UNION_PAYLOAD_VERSION,
-  SAMPLESHEET_SHOWER_COMPLETE_STATUS,
-  SAMPLESHEET_SHOWER_STARTING_STATUS,
-  SAMPLESHEET_SHOWER_STATE_CHANGE_DETAIL_TYPE,
   STACK_PREFIX,
   STACK_SOURCE,
-  STACKY_FASTQ_LIST_ROW_SHOWER_STATE_CHANGE,
-  STACKY_FASTQ_LIST_ROW_STATE_CHANGE,
-  START_SAMPLESHEET_SHOWER_PAYLOAD_VERSION,
   STEP_FUNCTIONS_DIR,
 } from '../constants';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
@@ -76,40 +59,6 @@ function createStateMachineDefinitionSubstitutions(props: BuildSfnProps): {
 
   /* Substitute the event source in the state machine definition */
   definitionSubstitutions['__stack_event_source__'] = STACK_SOURCE;
-
-  /* Stacky glue substitutions - that we will oneday be able to delete */
-  definitionSubstitutions['__samplesheet_shower_started_detail_type__'] =
-    SAMPLESHEET_SHOWER_STATE_CHANGE_DETAIL_TYPE;
-  definitionSubstitutions['__samplesheet_shower_starting_status__'] =
-    SAMPLESHEET_SHOWER_STARTING_STATUS;
-  definitionSubstitutions['__start_samplesheet_shower_payload_version__'] =
-    START_SAMPLESHEET_SHOWER_PAYLOAD_VERSION;
-  definitionSubstitutions['__end_samplesheet_shower_payload_version__'] =
-    END_SAMPLESHEET_SHOWER_PAYLOAD_VERSION;
-  definitionSubstitutions['__samplesheet_shower_complete_status__'] =
-    SAMPLESHEET_SHOWER_COMPLETE_STATUS;
-  definitionSubstitutions['__library_in_samplesheet_status__'] = LIBRARY_IN_SAMPLESHEET_STATUS;
-  definitionSubstitutions['__samplesheet_metadata_union_payload_version__'] =
-    SAMPLESHEET_METADATA_UNION_PAYLOAD_VERSION;
-  definitionSubstitutions['__samplesheet_metadata_union_detail_type__'] =
-    SAMPLESHEET_METADATA_UNION_DETAIL_TYPE;
-
-  definitionSubstitutions['__fastq_list_row_shower_start_status__'] =
-    FASTQ_LIST_ROW_SHOWER_START_STATUS;
-  definitionSubstitutions['__fastq_list_row_shower_start_payload_version__'] =
-    FASTQ_LIST_ROW_SHOWER_START_PAYLOAD_VERSION;
-  definitionSubstitutions['__stacky_fastq_list_row_state_change__'] =
-    STACKY_FASTQ_LIST_ROW_STATE_CHANGE;
-  definitionSubstitutions['__fastq_sync_detail_type__'] = FASTQ_SYNC_DETAIL_TYPE;
-  definitionSubstitutions['__new_fastq_list_row_status__'] = NEW_FASTQ_LIST_ROW_STATUS;
-  definitionSubstitutions['__new_fastq_list_row_payload_version__'] =
-    NEW_FASTQ_LIST_ROW_PAYLOAD_VERSION;
-  definitionSubstitutions['__fastq_list_row_event_shower_complete_status__'] =
-    FASTQ_LIST_ROW_EVENT_SHOWER_COMPLETE_STATUS;
-  definitionSubstitutions['__fastq_list_row_shower_complete_payload_version__'] =
-    FASTQ_LIST_ROW_SHOWER_COMPLETE_PAYLOAD_VERSION;
-  definitionSubstitutions['__stacky_fastq_list_row_shower_state_change__'] =
-    STACKY_FASTQ_LIST_ROW_SHOWER_STATE_CHANGE;
 
   return definitionSubstitutions;
 }

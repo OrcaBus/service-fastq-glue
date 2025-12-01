@@ -3,22 +3,26 @@ import { StateMachine } from 'aws-cdk-lib/aws-stepfunctions';
 import { IEventBus } from 'aws-cdk-lib/aws-events';
 import { LambdaNameList, LambdaObject } from '../lambdas/interfaces';
 
-export type SfnNameList =
-  | 'fastqSetAddReadSet'
+export type SfnName =
+  // Pre BCLConvert
   | 'fastqSetGeneration'
-  | 'stackyGenerateLibraryEvent'
-  | 'stackyGenerateFastqListRowEvent';
+  // Post BCLConvert - BSSH Copy
+  | 'fastqSetAddReadSet'
+  // Post-analysis
+  | 'triggerSomalierExtract';
 
-export const sfnNameList: Array<SfnNameList> = [
-  'fastqSetAddReadSet',
+export const sfnNameList: Array<SfnName> = [
+  // Pre BCLConvert
   'fastqSetGeneration',
-  'stackyGenerateLibraryEvent',
-  'stackyGenerateFastqListRowEvent',
+  // Post BCLConvert - BSSH Copy
+  'fastqSetAddReadSet',
+  // Post-analysis
+  'triggerSomalierExtract',
 ];
 
 export interface SfnProps {
   /* Naming formation */
-  stateMachineName: SfnNameList;
+  stateMachineName: SfnName;
 }
 
 export interface SfnObject extends SfnProps {
@@ -40,16 +44,10 @@ export const fastqSetAddReadSetLambdaList: Array<LambdaNameList> = [
   'getSampleDemultiplexStats',
 ];
 
-export const stackyGenerateLibraryEventLambdaList: Array<LambdaNameList> = [
-  'getLibraryIdListFromSamplesheet',
-  'getLibraryObjectsFromLibraryIdList',
-  'getFastqListRowObjectsFromLibraryIdList',
-];
-
-export const stackyGenerateFastqListRowEventLambdaList: Array<LambdaNameList> = [
-  'getLibraryIdListFromSamplesheet',
-  'getFastqListRowsFromFastqSetId',
-  'getFastqSetIdListForLibraries',
+export const triggerSomalierExtractLambdaList: Array<LambdaNameList> = [
+  'getBamByLibraryId',
+  'runExtractFingerprint',
+  'getFastqSetIdByLibrary',
 ];
 
 export interface SfnRequirementsProps {
@@ -63,7 +61,7 @@ export interface SfnRequirementsProps {
   needsDistributedMapPolicy?: boolean;
 }
 
-export const SfnRequirementsMapType: { [key in SfnNameList]: SfnRequirementsProps } = {
+export const SfnRequirementsMapType: { [key in SfnName]: SfnRequirementsProps } = {
   // Fastq Set Generation SFN requirements
   fastqSetGeneration: {
     /* Lambdas */
@@ -86,26 +84,10 @@ export const SfnRequirementsMapType: { [key in SfnNameList]: SfnRequirementsProp
     /* Sfn specific */
     needsDistributedMapPolicy: true,
   },
-  // Legacy SFNs
-  stackyGenerateLibraryEvent: {
+  // Post-analysis SFN requirements
+  triggerSomalierExtract: {
     /* Lambdas */
-    requiredLambdaNameList: stackyGenerateLibraryEventLambdaList,
-
-    /* Event stuff */
-    needsPutEvents: true,
-
-    /* Sfn specific */
-    needsDistributedMapPolicy: true,
-  },
-  stackyGenerateFastqListRowEvent: {
-    /* Lambdas */
-    requiredLambdaNameList: stackyGenerateFastqListRowEventLambdaList,
-
-    /* Event stuff */
-    needsPutEvents: true,
-
-    /* Sfn specific */
-    needsDistributedMapPolicy: true,
+    requiredLambdaNameList: triggerSomalierExtractLambdaList,
   },
 };
 

@@ -4,20 +4,20 @@ import { EventBridgeRuleObject } from '../event-rules/interfaces';
 import { SfnObject } from '../step-functions/interfaces';
 
 export type EventBridgeTargetsNameList =
+  // Pre BCLConvert
   | 'sequenceRunManagerSucceededToFastqSetGenerationSfn'
-  | 'legacyBsshFastqCopySucceededToFastqSetAddReadSetSfn'
+  // Post BCLConvert - Pre Staging
   | 'bsshFastqCopySucceededToFastqSetAddReadSetSfn'
-  // Legacy EventBridge targets
-  | 'fastqGlueFastqSetsAddedEventToStackyGenerateLibraryEventsSfn'
-  | 'fastqGlueReadSetsAddedEventToStackyGenerateFqlrsEventsSfn';
+  // Post Staging - Analysis
+  | 'listenWorkflowWithBamRuleToTriggerSomalierExtractSfn';
 
 export const eventBridgeTargetsNameList: Array<EventBridgeTargetsNameList> = [
+  // Pre BCLConvert
   'sequenceRunManagerSucceededToFastqSetGenerationSfn',
-  'legacyBsshFastqCopySucceededToFastqSetAddReadSetSfn',
+  // Post BCLConvert - Pre Staging
   'bsshFastqCopySucceededToFastqSetAddReadSetSfn',
-  // Legacy EventBridge targets
-  'fastqGlueFastqSetsAddedEventToStackyGenerateLibraryEventsSfn',
-  'fastqGlueReadSetsAddedEventToStackyGenerateFqlrsEventsSfn',
+  // Post Staging - Analysis
+  'listenWorkflowWithBamRuleToTriggerSomalierExtractSfn',
 ];
 
 export interface AddSfnAsEventBridgeTargetProps {
