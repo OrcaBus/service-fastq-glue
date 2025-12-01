@@ -62,7 +62,7 @@ export function buildAllEventBridgeTargets(props: EventBridgeTargetsProps) {
       case 'sequenceRunManagerSucceededToFastqSetGenerationSfn': {
         buildSrmSucceededToFastqSetGenerationSfnEventBridgeTarget(<AddSfnAsEventBridgeTargetProps>{
           eventBridgeRuleObj: props.eventBridgeRuleObjects.find(
-            (eventBridgeObject) => eventBridgeObject.ruleName === 'listenSrmSucceededRule'
+            (eventBridgeObject) => eventBridgeObject.ruleName === 'listenSrmSampleSheetStateChange'
           )?.ruleObject,
           stateMachineObj: props.stepFunctionObjects.find(
             (eventBridgeObject) => eventBridgeObject.stateMachineName === 'fastqSetGeneration'

@@ -16,8 +16,7 @@ import {
   FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE,
   READ_SETS_ADDED_EVENT_DETAIL_TYPE,
   SEQUENCE_RUN_MANAGER_EVENT_SOURCE,
-  SEQUENCE_RUN_MANAGER_EVENT_STATUS,
-  SEQUENCE_RUN_MANAGER_STATE_CHANGE_EVENT_DETAIL_TYPE,
+  SEQUENCE_RUN_MANAGER_SAMPLESHEET_CHANGE_DETAIL_TYPE,
   STACK_PREFIX,
   STACK_SOURCE,
   WORKFLOW_MANAGER_EVENT_SOURCE,
@@ -38,9 +37,6 @@ function buildSequenceRunManagerStateChangeEventRule(
     eventPattern: {
       source: [props.eventSource],
       detailType: [props.eventDetailType],
-      detail: {
-        status: [{ 'equals-ignore-case': props.eventStatus }],
-      },
     },
     eventBus: props.eventBus,
   });
@@ -127,15 +123,14 @@ export function buildAllEventRules(
   // Iterate over the eventBridgeNameList and create the event rules
   for (const ruleName of eventBridgeNameList) {
     switch (ruleName) {
-      case 'listenSrmSucceededRule': {
+      case 'listenSrmSampleSheetStateChange': {
         eventBridgeRuleObjects.push({
           ruleName: ruleName,
           ruleObject: buildSequenceRunManagerStateChangeEventRule(scope, {
             ruleName: ruleName,
             eventSource: SEQUENCE_RUN_MANAGER_EVENT_SOURCE,
             eventBus: props.eventBus,
-            eventDetailType: SEQUENCE_RUN_MANAGER_STATE_CHANGE_EVENT_DETAIL_TYPE,
-            eventStatus: SEQUENCE_RUN_MANAGER_EVENT_STATUS,
+            eventDetailType: SEQUENCE_RUN_MANAGER_SAMPLESHEET_CHANGE_DETAIL_TYPE,
           }),
         });
         break;
