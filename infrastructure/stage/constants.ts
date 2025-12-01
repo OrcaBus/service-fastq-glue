@@ -2,12 +2,13 @@
 
 import path from 'path';
 import { StageName } from '@orcabus/platform-cdk-constructs/shared-config/accounts';
+import { EVENT_SCHEMA_REGISTRY_NAME } from '@orcabus/platform-cdk-constructs/shared-config/event-bridge';
 
 /* Directory constants */
 export const APP_ROOT = path.join(__dirname, '../../app');
 export const LAMBDA_DIR = path.join(APP_ROOT, 'lambdas');
 export const STEP_FUNCTIONS_DIR = path.join(APP_ROOT, 'step-function-templates');
-
+export const EVENT_SCHEMAS_DIR = path.join(APP_ROOT, 'event-schemas');
 export const EVENT_BUS_NAME = 'OrcaBusMain';
 
 /* SRM Constants */
@@ -24,6 +25,9 @@ export const BSSH_TO_AWS_S3_COPY_STATUS = 'SUCCEEDED';
 /* Local stack constants */
 export const STACK_SOURCE = 'orcabus.fastqglue';
 export const STACK_PREFIX = 'fastq-glue';
+
+/* SSM Constants */
+export const SSM_PARAMETER_PATH_PREFIX = path.join(`/orcabus/fastq-glue/`);
 
 /* Event Details */
 export const FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE = 'FastqListRowsAdded';
@@ -43,6 +47,10 @@ export const AWS_S3_PRIMARY_DATA_PREFIX: Record<StageName, string> = {
   ['GAMMA']: 'byob-icav2/staging/primary/',
   ['PROD']: 'byob-icav2/production/primary/',
 };
+
+/* Schema constants */
+export const SCHEMA_REGISTRY_NAME = EVENT_SCHEMA_REGISTRY_NAME;
+export const SSM_SCHEMA_ROOT = path.join(SSM_PARAMETER_PATH_PREFIX, 'schemas');
 
 /*
 Lab Metadata constants
