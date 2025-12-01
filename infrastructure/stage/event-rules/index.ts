@@ -3,6 +3,7 @@ import {
   EventBridgeRuleObject,
   EventBridgeRulesProps,
   FastqListRowAddedRuleProps,
+  MultiWorkflowRunStateChangeRuleProps,
   ReadSetsAddedRuleProps,
   SequenceRunManagerRuleProps,
   WorkflowRunStateChangeRuleProps,
@@ -13,6 +14,8 @@ import { Construct } from 'constructs';
 import {
   BSSH_TO_AWS_S3_COPY_STATUS,
   BSSH_TO_AWS_S3_COPY_WORKFLOW_NAME,
+  DRAGEN_TSO500_CTDNA_WORKFLOW_NAME,
+  DRAGEN_WGTS_DNA_WORKFLOW_NAME,
   FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE,
   READ_SETS_ADDED_EVENT_DETAIL_TYPE,
   SEQUENCE_RUN_MANAGER_EVENT_SOURCE,
@@ -46,24 +49,6 @@ function buildSequenceRunManagerStateChangeEventRule(
   });
 }
 
-function buildWorkflowRunStateChangeLegacyEventRule(
-  scope: Construct,
-  props: WorkflowRunStateChangeRuleProps
-): Rule {
-  return new events.Rule(scope, props.ruleName, {
-    ruleName: `${STACK_PREFIX}--${props.ruleName}`,
-    eventPattern: {
-      source: [props.eventSource],
-      detailType: [props.eventDetailType],
-      detail: {
-        status: [{ 'equals-ignore-case': props.eventStatus }],
-        workflowName: [{ 'equals-ignore-case': props.workflowName }],
-      },
-    },
-    eventBus: props.eventBus,
-  });
-}
-
 function buildWorkflowRunStateChangeEventRule(
   scope: Construct,
   props: WorkflowRunStateChangeRuleProps
@@ -77,6 +62,27 @@ function buildWorkflowRunStateChangeEventRule(
         status: [{ 'equals-ignore-case': props.eventStatus }],
         workflow: {
           name: [{ 'equals-ignore-case': props.workflowName }],
+        },
+      },
+    },
+    eventBus: props.eventBus,
+  });
+}
+
+function buildMultiWorkflowWorkflowRunStateChangeEventRule(
+  scope: Construct,
+  props: MultiWorkflowRunStateChangeRuleProps
+): Rule {
+  return new events.Rule(scope, props.ruleName, {
+    ruleName: `${STACK_PREFIX}--${props.ruleName}`,
+    eventPattern: {
+      source: [props.eventSource],
+      detailType: [props.eventDetailType],
+      detail: {
+        status: [{ 'equals-ignore-case': props.eventStatus }],
+        workflow: {
+          // For each workflow name in the array, create an 'equals-ignore-case' condition
+          name: [...props.workflowNameList.map((name) => ({ 'equals-ignore-case': name }))],
         },
       },
     },
@@ -127,6 +133,7 @@ export function buildAllEventRules(
   // Iterate over the eventBridgeNameList and create the event rules
   for (const ruleName of eventBridgeNameList) {
     switch (ruleName) {
+      /* SRM Rules */
       case 'listenSrmSucceededRule': {
         eventBridgeRuleObjects.push({
           ruleName: ruleName,
@@ -140,20 +147,7 @@ export function buildAllEventRules(
         });
         break;
       }
-      case 'listenLegacyBsshFastqCopySucceededRule': {
-        eventBridgeRuleObjects.push({
-          ruleName: ruleName,
-          ruleObject: buildWorkflowRunStateChangeLegacyEventRule(scope, {
-            ruleName: ruleName,
-            eventSource: WORKFLOW_MANAGER_EVENT_SOURCE,
-            eventBus: props.eventBus,
-            eventDetailType: WORKFLOW_RUN_STATE_CHANGE_EVENT_DETAIL_TYPE,
-            eventStatus: BSSH_TO_AWS_S3_COPY_STATUS,
-            workflowName: BSSH_TO_AWS_S3_COPY_WORKFLOW_NAME,
-          }),
-        });
-        break;
-      }
+      /* BSSH Fastq Copy Succeeded Rule */
       case 'listenBsshFastqCopySucceededRule': {
         eventBridgeRuleObjects.push({
           ruleName: ruleName,
@@ -168,6 +162,22 @@ export function buildAllEventRules(
         });
         break;
       }
+      /* Workflow Bam Rules */
+      case 'listenWorkflowWithBamRule': {
+        eventBridgeRuleObjects.push({
+          ruleName: ruleName,
+          ruleObject: buildMultiWorkflowWorkflowRunStateChangeEventRule(scope, {
+            ruleName: ruleName,
+            eventSource: WORKFLOW_MANAGER_EVENT_SOURCE,
+            eventBus: props.eventBus,
+            eventDetailType: WORKFLOW_RUN_STATE_CHANGE_EVENT_DETAIL_TYPE,
+            eventStatus: 'SUCCEEDED',
+            workflowNameList: [DRAGEN_WGTS_DNA_WORKFLOW_NAME, DRAGEN_TSO500_CTDNA_WORKFLOW_NAME],
+          }),
+        });
+        break;
+      }
+      /* Legacy Clag Rules */
       case 'listenFastqGlueFastqListRowsAdded': {
         eventBridgeRuleObjects.push({
           ruleName: ruleName,

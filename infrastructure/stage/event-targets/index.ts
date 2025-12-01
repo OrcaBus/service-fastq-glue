@@ -55,6 +55,18 @@ function buildFastqReadSetsAddedToGenerateFqlrEventBridgeTarget(
   );
 }
 
+function buildWorkflowWithBamToTriggerSomalierExtractEventBridgeTarget(
+  props: AddSfnAsEventBridgeTargetProps
+): void {
+  props.eventBridgeRuleObj.addTarget(
+    new eventsTargets.SfnStateMachine(props.stateMachineObj, {
+      input: RuleTargetInput.fromObject({
+        workflowRunObj: EventField.fromPath('$.detail'),
+      }),
+    })
+  );
+}
+
 export function buildAllEventBridgeTargets(props: EventBridgeTargetsProps) {
   for (const eventBridgeTargetsName of eventBridgeTargetsNameList) {
     switch (eventBridgeTargetsName) {
@@ -72,20 +84,6 @@ export function buildAllEventBridgeTargets(props: EventBridgeTargetsProps) {
       }
 
       // BSSH to AWS WRSC Events
-      case 'legacyBsshFastqCopySucceededToFastqSetAddReadSetSfn': {
-        buildBsshFastqCopySucceededToFastqSetAddReadSetEventBridgeTarget(<
-          AddSfnAsEventBridgeTargetProps
-        >{
-          eventBridgeRuleObj: props.eventBridgeRuleObjects.find(
-            (eventBridgeObject) =>
-              eventBridgeObject.ruleName === 'listenLegacyBsshFastqCopySucceededRule'
-          )?.ruleObject,
-          stateMachineObj: props.stepFunctionObjects.find(
-            (eventBridgeObject) => eventBridgeObject.stateMachineName === 'fastqSetAddReadSet'
-          )?.stateMachineObj,
-        });
-        break;
-      }
       case 'bsshFastqCopySucceededToFastqSetAddReadSetSfn': {
         buildBsshFastqCopySucceededToFastqSetAddReadSetEventBridgeTarget(<
           AddSfnAsEventBridgeTargetProps
@@ -95,6 +93,21 @@ export function buildAllEventBridgeTargets(props: EventBridgeTargetsProps) {
           )?.ruleObject,
           stateMachineObj: props.stepFunctionObjects.find(
             (eventBridgeObject) => eventBridgeObject.stateMachineName === 'fastqSetAddReadSet'
+          )?.stateMachineObj,
+        });
+        break;
+      }
+
+      // Post analysis Events
+      case 'listenWorkflowWithBamRuleToTriggerSomalierExtractSfn': {
+        buildWorkflowWithBamToTriggerSomalierExtractEventBridgeTarget(<
+          AddSfnAsEventBridgeTargetProps
+        >{
+          eventBridgeRuleObj: props.eventBridgeRuleObjects.find(
+            (eventBridgeObject) => eventBridgeObject.ruleName === 'listenWorkflowWithBamRule'
+          )?.ruleObject,
+          stateMachineObj: props.stepFunctionObjects.find(
+            (eventBridgeObject) => eventBridgeObject.stateMachineName === 'triggerSomalierExtract'
           )?.stateMachineObj,
         });
         break;

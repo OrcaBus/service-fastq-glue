@@ -21,6 +21,10 @@ export const WORKFLOW_MANAGER_EVENT_SOURCE = 'orcabus.workflowmanager';
 export const BSSH_TO_AWS_S3_COPY_WORKFLOW_NAME = 'bssh-to-aws-s3';
 export const BSSH_TO_AWS_S3_COPY_STATUS = 'SUCCEEDED';
 
+/* Dragen Workflows (with bams) */
+export const DRAGEN_WGTS_DNA_WORKFLOW_NAME = 'dragen-wgts-dna';
+export const DRAGEN_TSO500_CTDNA_WORKFLOW_NAME = 'dragen-tso500-ctdna';
+
 /* Local stack constants */
 export const STACK_SOURCE = 'orcabus.fastqglue';
 export const STACK_PREFIX = 'fastq-glue';
@@ -53,7 +57,6 @@ export const METADATA_TRACKING_SHEET_ID_SSM_PARAMETER_PATH =
 export const GDRIVE_AUTH_JSON_SSM_PARAMETER_PATH = '/umccr/google/drive/lims_service_account_json';
 
 /* Stacky Constants */
-
 export const SAMPLESHEET_SHOWER_STATE_CHANGE_DETAIL_TYPE = 'SamplesheetShowerStateChange';
 export const SAMPLESHEET_SHOWER_STARTING_STATUS = 'SamplesheetRegisteredEventShowerStarting';
 export const SAMPLESHEET_SHOWER_COMPLETE_STATUS = 'SamplesheetRegisteredEventShowerComplete';

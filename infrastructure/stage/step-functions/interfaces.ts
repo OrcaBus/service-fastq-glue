@@ -4,14 +4,24 @@ import { IEventBus } from 'aws-cdk-lib/aws-events';
 import { LambdaNameList, LambdaObject } from '../lambdas/interfaces';
 
 export type SfnNameList =
-  | 'fastqSetAddReadSet'
+  // Pre BCLConvert
   | 'fastqSetGeneration'
+  // Post BCLConvert - BSSH Copy
+  | 'fastqSetAddReadSet'
+  // Post-analysis
+  | 'triggerSomalierExtract'
+  // Legacy SFNs
   | 'stackyGenerateLibraryEvent'
   | 'stackyGenerateFastqListRowEvent';
 
 export const sfnNameList: Array<SfnNameList> = [
-  'fastqSetAddReadSet',
+  // Pre BCLConvert
   'fastqSetGeneration',
+  // Post BCLConvert - BSSH Copy
+  'fastqSetAddReadSet',
+  // Post-analysis
+  'triggerSomalierExtract',
+  // Legacy SFNs
   'stackyGenerateLibraryEvent',
   'stackyGenerateFastqListRowEvent',
 ];
@@ -38,6 +48,12 @@ export const fastqSetAddReadSetLambdaList: Array<LambdaNameList> = [
   'getFastqObjects',
   'getFileNamesFromFastqListCsv',
   'getSampleDemultiplexStats',
+];
+
+export const triggerSomalierExtractLambdaList: Array<LambdaNameList> = [
+  'getBamByLibraryId',
+  'runExtractFingerprint',
+  'getFastqSetIdByLibrary',
 ];
 
 export const stackyGenerateLibraryEventLambdaList: Array<LambdaNameList> = [
@@ -85,6 +101,11 @@ export const SfnRequirementsMapType: { [key in SfnNameList]: SfnRequirementsProp
 
     /* Sfn specific */
     needsDistributedMapPolicy: true,
+  },
+  // Post-analysis SFN requirements
+  triggerSomalierExtract: {
+    /* Lambdas */
+    requiredLambdaNameList: triggerSomalierExtractLambdaList,
   },
   // Legacy SFNs
   stackyGenerateLibraryEvent: {

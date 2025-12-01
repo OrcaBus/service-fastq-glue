@@ -3,13 +3,19 @@ import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 
 /** Lambda Interfaces **/
 export type LambdaNameList =
-  | 'addReadSetsToFastqObjects'
-  | 'createFastqSetObject'
+  // Fastq set creation
+  | 'getLibraryIdListFromSamplesheet'
   | 'getBclconvertDataFromSamplesheet'
+  | 'createFastqSetObject'
+  // Add readset related
+  | 'addReadSetsToFastqObjects'
   | 'getFastqObjects'
   | 'getFileNamesFromFastqListCsv'
-  | 'getLibraryIdListFromSamplesheet'
   | 'getSampleDemultiplexStats'
+  // Extract fingerprint related
+  | 'getBamByLibraryId'
+  | 'runExtractFingerprint'
+  | 'getFastqSetIdByLibrary'
   // Legacy lambdas (for clag glue)
   | 'getLibraryObjectsFromLibraryIdList'
   | 'getFastqSetIdListForLibraries'
@@ -17,13 +23,19 @@ export type LambdaNameList =
   | 'getFastqListRowObjectsFromLibraryIdList';
 
 export const lambdaNameList: Array<LambdaNameList> = [
-  'addReadSetsToFastqObjects',
-  'createFastqSetObject',
+  // Fastq set creation
+  'getLibraryIdListFromSamplesheet',
   'getBclconvertDataFromSamplesheet',
+  'createFastqSetObject',
+  // Add readset related
+  'addReadSetsToFastqObjects',
   'getFastqObjects',
   'getFileNamesFromFastqListCsv',
-  'getLibraryIdListFromSamplesheet',
   'getSampleDemultiplexStats',
+  // Extract fingerprint related
+  'getBamByLibraryId',
+  'runExtractFingerprint',
+  'getFastqSetIdByLibrary',
   // Legacy lambdas (for clag glue)
   'getLibraryObjectsFromLibraryIdList',
   'getFastqSetIdListForLibraries',
@@ -64,13 +76,18 @@ export interface LambdaObject {
 export type LambdaToRequirementsMapType = { [key in LambdaNameList]: LambdaRequirementProps };
 
 export const lambdaToRequirementsMap: LambdaToRequirementsMapType = {
-  addReadSetsToFastqObjects: {
+  // Fastq set creation related
+  getLibraryIdListFromSamplesheet: {
+    needsOrcabusApiToolsLayer: true,
+  },
+  getBclconvertDataFromSamplesheet: {
     needsOrcabusApiToolsLayer: true,
   },
   createFastqSetObject: {
     needsOrcabusApiToolsLayer: true,
   },
-  getBclconvertDataFromSamplesheet: {
+  // Fastq add readset related
+  addReadSetsToFastqObjects: {
     needsOrcabusApiToolsLayer: true,
   },
   getFastqObjects: {
@@ -79,12 +96,19 @@ export const lambdaToRequirementsMap: LambdaToRequirementsMapType = {
   getFileNamesFromFastqListCsv: {
     needsAwsReadAccess: true,
   },
-  getLibraryIdListFromSamplesheet: {
-    needsOrcabusApiToolsLayer: true,
-  },
   getSampleDemultiplexStats: {
     needsOrcabusApiToolsLayer: true,
     needsAwsReadAccess: true,
+  },
+  // Extract fingerprint related
+  getBamByLibraryId: {
+    needsOrcabusApiToolsLayer: true,
+  },
+  runExtractFingerprint: {
+    needsOrcabusApiToolsLayer: true,
+  },
+  getFastqSetIdByLibrary: {
+    needsOrcabusApiToolsLayer: true,
   },
   // Legacy lambdas (for clag glue)
   getLibraryObjectsFromLibraryIdList: {
