@@ -65,8 +65,6 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import boto3
 import re
-from os import environ
-import json
 import pandas as pd
 from datetime import datetime
 
@@ -367,6 +365,7 @@ def is_rerun(
         return True
     return False
 
+
 def append_to_existing_fastq_set(
     library_id: str,
     instrument_run_id: str,
@@ -528,32 +527,3 @@ def handler(event, context):
         instrument_run_id=instrument_run_id,
         bclconvert_data_df=bclconvert_data_df
     )
-
-
-if __name__ == "__main__":
-    import json
-    from os import environ
-
-    environ['AWS_PROFILE'] = 'umccr-development'
-    environ['AWS_REGION'] = 'ap-southeast-2'
-    environ['ORCABUS_TOKEN_SECRET_ID'] = 'orcabus/token-service-jwt'
-    environ['HOSTNAME_SSM_PARAMETER'] = '/hosted_zone/umccr/name'
-
-    print(json.dumps(
-        handler(
-            {
-                "libraryId": "L2501636",
-                "bclConvertData": [
-                    {
-                        "libraryId": "L2501636",
-                        "index": "CCAAGTCT+TCATCCTT",
-                        "lane": 3,
-                        "cycleCount": 302
-                    }
-                ],
-                "instrumentRunId": "20251124_LH00944_0001_A23CCTGLT4"
-            },
-            None
-        ),
-        indent=4
-    ))

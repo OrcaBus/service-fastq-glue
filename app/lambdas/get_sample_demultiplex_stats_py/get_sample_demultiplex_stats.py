@@ -121,8 +121,9 @@ def get_est_count_from_samplesheet(
         lambda series_iter_map_: (
                 (
                     get_cycle_count_from_bclconvert_data_row(next(filter(
-                        lambda bclconvert_data_iter_: bclconvert_data_iter_['sampleId'] == series_iter_map_[1][
-                            'SampleID'],
+                        lambda bclconvert_data_iter_: (
+                            bclconvert_data_iter_['sampleId'] == series_iter_map_[1]['SampleID']
+                        ),
                         samplesheet_dict['bclconvertData']
                     )))
                     if get_cycle_count_from_bclconvert_data_row(samplesheet_dict['bclconvertData']) is not None
@@ -206,78 +207,3 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
             sample_id_list
         ))
     }
-
-
-# if __name__ == "__main__":
-#     import json
-#     from os import environ
-#
-#     environ['AWS_PROFILE'] = 'umccr-production'
-#     environ['AWS_REGION'] = 'ap-southeast-2'
-#     environ['HOSTNAME_SSM_PARAMETER_NAME'] = '/hosted_zone/umccr/name'
-#     environ['ORCABUS_TOKEN_SECRET_ID'] = 'orcabus/token-service-jwt'
-#     print(json.dumps(
-#         handler(
-#             {
-#                 "sampleIdList": [
-#                     "LPRJ241540",
-#                     "LPRJ241542",
-#                     "LPRJ251219",
-#                     "LPRJ251220"
-#                 ],
-#                 "demuxStatsUri": "s3://pipeline-prod-cache-503977275616-ap-southeast-2/byob-icav2/production/primary/250724_A01052_0269_AHFHWJDSXF/2025072611867654/Reports/Demultiplex_Stats.csv",
-#                 "instrumentRunId": "250724_A01052_0269_AHFHWJDSXF"
-#             },
-#                 None
-#         ),
-#         indent=4
-#     ))
-#
-#     # {
-#     #     "demuxDataBySample": [
-#     #         {
-#     #             "sampleId": "LPRJ241540",
-#     #             "demuxData": [
-#     #                 {
-#     #                     "sampleId": "LPRJ241540",
-#     #                     "lane": 2,
-#     #                     "readCount": 104302869,
-#     #                     "baseCountEst": 31499466438
-#     #                 }
-#     #             ]
-#     #         },
-#     #         {
-#     #             "sampleId": "LPRJ241542",
-#     #             "demuxData": [
-#     #                 {
-#     #                     "sampleId": "LPRJ241542",
-#     #                     "lane": 2,
-#     #                     "readCount": 131864398,
-#     #                     "baseCountEst": 39823048196
-#     #                 }
-#     #             ]
-#     #         },
-#     #         {
-#     #             "sampleId": "LPRJ251219",
-#     #             "demuxData": [
-#     #                 {
-#     #                     "sampleId": "LPRJ251219",
-#     #                     "lane": 4,
-#     #                     "readCount": 532167142,
-#     #                     "baseCountEst": 160714476884
-#     #                 }
-#     #             ]
-#     #         },
-#     #         {
-#     #             "sampleId": "LPRJ251220",
-#     #             "demuxData": [
-#     #                 {
-#     #                     "sampleId": "LPRJ251220",
-#     #                     "lane": 4,
-#     #                     "readCount": 627957040,
-#     #                     "baseCountEst": 189643026080
-#     #                 }
-#     #             ]
-#     #         }
-#     #     ]
-#     # }
