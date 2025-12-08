@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "detail": {
+      "type": "object",
+      "properties": {
+        "instrumentRunId": {
+          "type": "string",
+          "description": "The unique identifier for the instrument run."
+        }
+      },
+      "required": ["instrumentRunId"]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "eventBusName": {
+      "type": "string",
+      "enum": ["OrcaBusMain"]
+    },
+    "detail": {
+      "$ref": "#/$defs/detail"
+    },
+    "detailType": {
+      "type": "string",
+      "enum": ["ReadSetsAdded"]
+    },
+    "source": {
+      "type": "string",
+      "enum": ["orcabus.fastqglue"]
+    }
+  },
+  "required": ["eventBusName", "detail", "detailType", "source"]
+}
