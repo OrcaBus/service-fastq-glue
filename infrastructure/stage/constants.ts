@@ -11,9 +11,8 @@ export const STEP_FUNCTIONS_DIR = path.join(APP_ROOT, 'step-function-templates')
 export const EVENT_BUS_NAME = 'OrcaBusMain';
 
 /* SRM Constants */
-export const SEQUENCE_RUN_MANAGER_STATE_CHANGE_EVENT_DETAIL_TYPE = 'SequenceRunStateChange';
+export const SEQUENCE_RUN_MANAGER_SAMPLESHEET_CHANGE_DETAIL_TYPE = 'SequenceRunSampleSheetChange';
 export const SEQUENCE_RUN_MANAGER_EVENT_SOURCE = 'orcabus.sequencerunmanager';
-export const SEQUENCE_RUN_MANAGER_EVENT_STATUS = 'SUCCEEDED';
 
 /* BSSH Fastq Copy to AWS Constants */
 export const WORKFLOW_RUN_STATE_CHANGE_EVENT_DETAIL_TYPE = 'WorkflowRunStateChange';

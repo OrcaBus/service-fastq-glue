@@ -1,7 +1,7 @@
 import { IEventBus, Rule } from 'aws-cdk-lib/aws-events';
 
 export type EventBridgeNameList =
-  | 'listenSrmSucceededRule'
+  | 'listenSrmSampleSheetStateChange'
   | 'listenLegacyBsshFastqCopySucceededRule'
   | 'listenBsshFastqCopySucceededRule'
   // Legacy rules
@@ -9,8 +9,8 @@ export type EventBridgeNameList =
   | 'listenFastqGlueReadSetsAdded';
 
 export const eventBridgeNameList: EventBridgeNameList[] = [
-  /* Listen to bclconvert workflow status changes */
-  'listenSrmSucceededRule',
+  /* Listen to Srm SampleSheet status changes */
+  'listenSrmSampleSheetStateChange',
   /* Listen to bssh Fastq Copy Ready rule */
   'listenLegacyBsshFastqCopySucceededRule',
   'listenBsshFastqCopySucceededRule',
@@ -43,7 +43,7 @@ export interface WorkflowRunStateChangeRuleProps extends EventBridgeRulePropsWit
   workflowName?: string;
 }
 
-export type SequenceRunManagerRuleProps = EventBridgeRulePropsWithStatus;
+export type SequenceRunManagerRuleProps = EventBridgeRuleProps;
 
 export type FastqListRowAddedRuleProps = EventBridgeRuleProps;
 export type ReadSetsAddedRuleProps = EventBridgeRuleProps;
