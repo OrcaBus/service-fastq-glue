@@ -9,7 +9,7 @@ export type EventBridgeNameList =
   | 'listenFastqGlueReadSetsAdded';
 
 export const eventBridgeNameList: EventBridgeNameList[] = [
-  /* Listen to bclconvert workflow status changes */
+  /* Listen to Srm SampleSheet status changes */
   'listenSrmSampleSheetStateChange',
   /* Listen to bssh Fastq Copy Ready rule */
   'listenLegacyBsshFastqCopySucceededRule',
