@@ -26,6 +26,11 @@ from orcabus_api_tools.sequence import (
 
 
 def get_cycle_count_from_bclconvert_data_row(bclconvert_data_row: Dict[str, str]) -> Optional[int]:
+    """
+    Get the cycle count from the bclconvert data row if overrideCycles is present
+    :param bclconvert_data_row:
+    :return:
+    """
     if "overrideCycles" in bclconvert_data_row:
         override_cycles = bclconvert_data_row['overrideCycles']
         return get_cycle_count_from_override_cycles(override_cycles)
@@ -39,11 +44,11 @@ def get_index(
     """
     Make the index reverse complemented if is_reversed is True
     Otherwise return the index as is
-    Didn't realise maketrans / translate could be used this way until now, thank you copilot.
+    (Didn't realise maketrans / translate could be used this way until now, thank you copilot.)
 
-    :param index_str:
-    :param is_reversed:
-    :return:
+    :param index_str: A string containing ACGTN characters
+    :param is_reversed: Boolean indicating if the index should be reverse complemented
+    :return: The (possibly reverse complemented) index string
     """
     if not is_reversed:
         return index_str
@@ -125,8 +130,8 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
     # Check the header InstrumentPlatform / Instrument Type
     is_reversed = False
     if (
-            samplesheet['header'].get("instrument_platform") == "NovaSeqXSeries" or
-            samplesheet['header'].get("instrument_type") == "NovaSeq X"
+            samplesheet['header'].get("instrument_platform", "").lower() == "novaseqxseries" or
+            samplesheet['header'].get("instrument_type", "").lower() == "novaseq x"
     ):
         # i5 Index is flipped, so we need to set the reverse complement flag
         is_reversed = True

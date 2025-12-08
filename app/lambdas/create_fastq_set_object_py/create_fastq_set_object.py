@@ -67,7 +67,10 @@ import boto3
 import re
 import pandas as pd
 from datetime import datetime
+from os import environ
+import json
 
+# Custom imports (only if we need to read the lab-metadata tracking sheet)
 from gspread_pandas import Spread
 
 # Layer imports
@@ -170,16 +173,9 @@ def generate_fastq_list_from_inputs(
             center=DEFAULT_CENTER,
             # Convert 250320_A01052_0256_BHFCFCDSXF
             # To 2025-03-20
-            # For novaseq X, we convert
+            # For NovaSeq X, we convert
             # 20251124_LH00944_0001_A23CCTGLT4 to 2025-11-24
-            date=(
-                datetime.strptime(
-                    instrument_run_id.split("_")[0],
-                    "%y%m%d"
-                ).strftime(
-                    "%Y-%m-%d"
-                )
-            ),
+            date=get_date_from_instrument_run_id(instrument_run_id),
             isValid=True,
         ),
         bclconvert_data_df.iterrows()
