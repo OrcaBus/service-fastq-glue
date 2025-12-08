@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import { DeploymentStackPipeline } from '@orcabus/platform-cdk-constructs/deployment-stack-pipeline';
 import { getStatelessStackProps } from '../stage/config';
 import { REPO_NAME } from './constants';
-import { ApplicationStatelessStack } from '../stage/application-stack';
+import { StatelessApplicationStack } from '../stage/stateless-application-stack';
 
 export class StatelessDeployStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -12,8 +12,8 @@ export class StatelessDeployStack extends cdk.Stack {
     new DeploymentStackPipeline(this, 'StatelessFastqGluePipeline', {
       githubBranch: 'main',
       githubRepo: REPO_NAME,
-      stack: ApplicationStatelessStack,
-      stackName: 'FastqGlueStack',
+      stack: StatelessApplicationStack,
+      stackName: 'StatelessFastqGlueStack',
       stackConfig: {
         beta: getStatelessStackProps('BETA'),
         gamma: getStatelessStackProps('GAMMA'),

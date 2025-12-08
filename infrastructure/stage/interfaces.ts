@@ -7,12 +7,10 @@
  * This makes the actual generation of the objects much easier to read and understand.
  */
 
-import * as cdk from 'aws-cdk-lib';
 import { StageName } from '@orcabus/platform-cdk-constructs/shared-config/accounts';
 
 /** Application Interfaces **/
-
-export interface StatelessApplicationStackConfig extends cdk.StackProps {
+export interface StatelessApplicationStackConfig {
   /* Stage name */
   stageName: StageName;
 
@@ -25,3 +23,5 @@ export interface StatelessApplicationStackConfig extends cdk.StackProps {
   awsS3CacheBucketName: string;
   awsS3PrimaryDataPrefix: string;
 }
+
+export type StatefulApplicationStackConfig = object;
