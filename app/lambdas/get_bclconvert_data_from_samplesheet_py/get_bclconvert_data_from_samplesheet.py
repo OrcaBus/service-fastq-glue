@@ -26,16 +26,42 @@ from orcabus_api_tools.sequence import (
 
 
 def get_cycle_count_from_bclconvert_data_row(bclconvert_data_row: Dict[str, str]) -> Optional[int]:
+    """
+    Get the cycle count from the bclconvert data row if overrideCycles is present
+    :param bclconvert_data_row:
+    :return:
+    """
     if "overrideCycles" in bclconvert_data_row:
         override_cycles = bclconvert_data_row['overrideCycles']
         return get_cycle_count_from_override_cycles(override_cycles)
     return None
 
 
+def get_index(
+        index_str: str,
+        is_reversed: bool
+) -> str:
+    """
+    Make the index reverse complemented if is_reversed is True
+    Otherwise return the index as is
+    (Didn't realise maketrans / translate could be used this way until now, thank you copilot.)
+
+    :param index_str: A string containing ACGTN characters
+    :param is_reversed: Boolean indicating if the index should be reverse complemented
+    :return: The (possibly reverse complemented) index string
+    """
+    if not is_reversed:
+        return index_str
+    # Reverse complement the index
+    complement = str.maketrans("ACGTN", "TGCAN")
+    return index_str.translate(complement)[::-1]
+
+
 def get_sample_bclconvert_data_from_v2_samplesheet(
         samplesheet: Dict,
         sample_id: str,
-        global_cycle_count: int
+        global_cycle_count: int,
+        is_reversed: bool
 ) -> List[Dict[str, Union[str, int]]]:
     # Get the bclconvert data from the samplesheet
     # Return only the rows of the bclconvert data section where sample_id is equal to sampleId
@@ -43,7 +69,14 @@ def get_sample_bclconvert_data_from_v2_samplesheet(
         list(map(
             lambda bclconvert_row_iter_: {
                 "libraryId": bclconvert_row_iter_['sampleId'],
-                "index": bclconvert_row_iter_['index'] + ("+" + bclconvert_row_iter_['index2'] if bclconvert_row_iter_['index2'] else ""),
+                "index": (
+                        bclconvert_row_iter_['index'] +
+                        (
+                            "+" + get_index(bclconvert_row_iter_['index2'], is_reversed=is_reversed)
+                            if bclconvert_row_iter_['index2']
+                            else ""
+                        )
+                ),
                 "lane": int(bclconvert_row_iter_['lane']),
                 "cycleCount": (
                     get_cycle_count_from_bclconvert_data_row(bclconvert_row_iter_)
@@ -94,6 +127,15 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
     # Read the samplesheet
     samplesheet: Dict = get_sample_sheet_from_instrument_run_id(instrument_run_id)['sampleSheetContent']
 
+    # Check the header InstrumentPlatform / Instrument Type
+    is_reversed = False
+    if (
+            samplesheet['header'].get("instrument_platform", "").lower() == "novaseqxseries" or
+            samplesheet['header'].get("instrument_type", "").lower() == "novaseq x"
+    ):
+        # i5 Index is flipped, so we need to set the reverse complement flag
+        is_reversed = True
+
     # Get override cycles from the samplesheet settings section
     global_cycle_count = get_global_cycle_count(samplesheet)
 
@@ -104,7 +146,8 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
             "bclConvertData": get_sample_bclconvert_data_from_v2_samplesheet(
                 samplesheet=samplesheet,
                 sample_id=library_id_iter_,
-                global_cycle_count=global_cycle_count
+                global_cycle_count=global_cycle_count,
+                is_reversed=is_reversed
             )
         },
         library_id_list
@@ -114,77 +157,3 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
     return {
         'bclConvertDataByLibrary': bclconvert_data_by_library
     }
-
-
-# if __name__ == "__main__":
-#     import json
-#     from os import environ
-#     environ['AWS_PROFILE'] = 'umccr-production'
-#     environ['AWS_REGION'] = 'ap-southeast-2'
-#     environ['HOSTNAME_SSM_PARAMETER_NAME'] = '/hosted_zone/umccr/name'
-#     environ['ORCABUS_TOKEN_SECRET_ID'] = 'orcabus/token-service-jwt'
-#     print(json.dumps(
-#         handler(
-#             {
-#                 "instrumentRunId": "250724_A01052_0269_AHFHWJDSXF",
-#                 "libraryIdList": [
-#                     "L2500214",
-#                     "L2500219",
-#                     "L2500222",
-#                     # ...
-#                     "LPRJ251220"
-#                 ]
-#             },
-#             None
-#         ),
-#         indent=4
-#     ))
-#
-#     # {
-#     #     "bclConvertDataByLibrary": [
-#     #         {
-#     #             "libraryId": "L2500214",
-#     #             "bclConvertData": [
-#     #                 {
-#     #                     "libraryId": "L2500214",
-#     #                     "index": "ATTCAGAA+AGGCTATA",
-#     #                     "lane": 1,
-#     #                     "cycleCount": 302
-#     #                 }
-#     #             ]
-#     #         },
-#     #         {
-#     #             "libraryId": "L2500219",
-#     #             "bclConvertData": [
-#     #                 {
-#     #                     "libraryId": "L2500219",
-#     #                     "index": "ATTACTCG+GACTTCCT",
-#     #                     "lane": 4,
-#     #                     "cycleCount": 302
-#     #                 }
-#     #             ]
-#     #         },
-#     #         {
-#     #             "libraryId": "L2500222",
-#     #             "bclConvertData": [
-#     #                 {
-#     #                     "libraryId": "L2500222",
-#     #                     "index": "CGTAGCTC+CATCCGAA",
-#     #                     "lane": 3,
-#     #                     "cycleCount": 302
-#     #                 }
-#     #             ]
-#     #         },
-#     #         {
-#     #             "libraryId": "LPRJ251220",
-#     #             "bclConvertData": [
-#     #                 {
-#     #                     "libraryId": "LPRJ251220",
-#     #                     "index": "ACAGTAACTA+AACGAACTGT",
-#     #                     "lane": 4,
-#     #                     "cycleCount": 302
-#     #                 }
-#     #             ]
-#     #         }
-#     #     ]
-#     # }

@@ -71,31 +71,3 @@ def handler(event, context) -> Dict[str, List[str]]:
     return {
         "libraryIdList": list(sorted(set(get_libraries_from_instrument_run_id(instrument_run_id))))
     }
-
-
-# if __name__ == "__main__":
-#     import json
-#     from os import environ
-#     environ['AWS_PROFILE'] = 'umccr-production'
-#     environ['AWS_REGION'] = 'ap-southeast-2'
-#     environ['HOSTNAME_SSM_PARAMETER_NAME'] = '/hosted_zone/umccr/name'
-#     environ['ORCABUS_TOKEN_SECRET_ID'] = 'orcabus/token-service-jwt'
-#     print(json.dumps(
-#         handler(
-#             {
-#                 "instrumentRunId": "250724_A01052_0269_AHFHWJDSXF"
-#             },
-#             None
-#         ),
-#         indent=4
-#     ))
-#
-#     # {
-#     #     "libraryIdList": [
-#     #         "L2500185",
-#     #         "L2500181",
-#     #         ...
-#     #         "L2500178",
-#     #         "L2500179"
-#     #     ]
-#     # }

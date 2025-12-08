@@ -65,11 +65,12 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import boto3
 import re
-from os import environ
-import json
 import pandas as pd
 from datetime import datetime
+from os import environ
+import json
 
+# Custom imports (only if we need to read the lab-metadata tracking sheet)
 from gspread_pandas import Spread
 
 # Layer imports
@@ -99,7 +100,23 @@ DEFAULT_CENTER = "UMCCR"
 GDRIVE_AUTH_JSON_SSM_PARAMETER_PATH_ENV_VAR = "GDRIVE_AUTH_JSON_SSM_PARAMETER_PATH"
 METADATA_TRACKING_SHEET_ID_SSM_PARAMETER_PATH_ENV_VAR = "METADATA_TRACKING_SHEET_ID_SSM_PARAMETER_PATH"
 GET_YEAR_FROM_LIBRARY_ID_REGEX = re.compile(r"L(?:PRJ)?(\d{2})(?:\d{5})?")
+INSTRUMENT_RUN_ID_TO_DATE_REGEX = {
+    # NovaSeq6000 example: 250320_A01052_0256_BHFCFCDSXF
+    "NovaSeq6000": re.compile(r"(\d{6})_[A-Z0-9]+_[0-9]{4}_[A-Z0-9]+"),
+    # NovaSeqX example: 20251124_LH00944_0001_A23CCTGLT4
+    "NovaSeqX": re.compile(r"(\d{8})_[A-Z0-9]+_[0-9]{4}_[A-Z0-9]+"),
+}
 
+
+def get_date_from_instrument_run_id(instrument_run_id: str) -> str:
+    if match := INSTRUMENT_RUN_ID_TO_DATE_REGEX["NovaSeq6000"].match(instrument_run_id):
+        return datetime.strptime(match.group(1), "%y%m%d").strftime("%Y-%m-%d")
+    elif match := INSTRUMENT_RUN_ID_TO_DATE_REGEX["NovaSeqX"].match(instrument_run_id):
+        return datetime.strptime(match.group(1), "%Y%m%d").strftime("%Y-%m-%d")
+    else:
+        raise ValueError(
+            f"Could not parse date from instrument run id: {instrument_run_id}"
+        )
 
 
 def merge_dataframes(
@@ -156,14 +173,9 @@ def generate_fastq_list_from_inputs(
             center=DEFAULT_CENTER,
             # Convert 250320_A01052_0256_BHFCFCDSXF
             # To 2025-03-20
-            date=(
-                datetime.strptime(
-                    instrument_run_id.split("_")[0],
-                    "%y%m%d"
-                ).strftime(
-                    "%Y-%m-%d"
-                )
-            ),
+            # For NovaSeq X, we convert
+            # 20251124_LH00944_0001_A23CCTGLT4 to 2025-11-24
+            date=get_date_from_instrument_run_id(instrument_run_id),
             isValid=True,
         ),
         bclconvert_data_df.iterrows()
@@ -198,14 +210,7 @@ def create_fastq_set_from_df(
                 "center": DEFAULT_CENTER,
                 # Convert 250320_A01052_0256_BHFCFCDSXF
                 # To 2025-03-20
-                "date": (
-                    datetime.strptime(
-                        instrument_run_id.split("_")[0],
-                        "%y%m%d"
-                    ).strftime(
-                        "%Y-%m-%d"
-                    )
-                ),
+                "date": get_date_from_instrument_run_id(instrument_run_id),
                 "isValid": True,
             })),
             bclconvert_data_df.iterrows()
@@ -355,6 +360,7 @@ def is_rerun(
     if f"{library_id}_rerun" in library_id_list:
         return True
     return False
+
 
 def append_to_existing_fastq_set(
     library_id: str,
@@ -517,37 +523,3 @@ def handler(event, context):
         instrument_run_id=instrument_run_id,
         bclconvert_data_df=bclconvert_data_df
     )
-
-
-# if __name__ == "__main__":
-#     import json
-#     from os import environ
-#
-#     environ['AWS_PROFILE'] = 'umccr-development'
-#     environ['AWS_REGION'] = 'ap-southeast-2'
-#     environ['ORCABUS_TOKEN_SECRET_ID'] = 'orcabus/token-service-jwt'
-#     environ['HOSTNAME_SSM_PARAMETER'] = '/hosted_zone/umccr/name'
-#
-#     print(json.dumps(
-#         handler(
-#              {
-#                  "libraryId": "L2500175",
-#                  "bclConvertData": [
-#                      {
-#                          "libraryId": "L2500175",
-#                          "index": "AACTGTAG+TGCGGCGT",
-#                          "lane": 3,
-#                          "cycleCount": 302
-#                      },
-#                      {
-#                          "libraryId": "L2500175",
-#                          "index": "AACTGTAG+TGCGGCGT",
-#                          "lane": 4,
-#                          "cycleCount": 302
-#                      }
-#                  ]
-#              },
-#             None
-#         ),
-#         indent=4
-#     ))
