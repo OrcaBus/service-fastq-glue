@@ -11,9 +11,11 @@ import { buildAllEventRules } from './event-rules';
 import { NagSuppressions } from 'cdk-nag';
 import { StageName } from '@orcabus/platform-cdk-constructs/shared-config/accounts';
 
-export class ApplicationStatelessStack extends cdk.Stack {
+export type StatelessApplicationStackProps = cdk.StackProps & StatelessApplicationStackConfig;
+
+export class StatelessApplicationStack extends cdk.Stack {
   public readonly stageName: StageName;
-  constructor(scope: Construct, id: string, props: StatelessApplicationStackConfig) {
+  constructor(scope: Construct, id: string, props: StatelessApplicationStackProps) {
     super(scope, id, props);
     this.stageName = props.stageName;
 
@@ -61,7 +63,7 @@ export class ApplicationStatelessStack extends cdk.Stack {
       },
       {
         id: 'AwsSolutions-SF2',
-        reason: "We don't need X-Reay tracing for this stack",
+        reason: "We don't need X-Ray tracing for this stack",
       },
     ]);
   }

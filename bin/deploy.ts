@@ -3,6 +3,7 @@ import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { StatelessDeployStack } from '../infrastructure/toolchain/stateless-deploy-stack';
 import { TOOLCHAIN_ENVIRONMENT } from '@orcabus/platform-cdk-constructs/deployment-stack-pipeline';
+import { StatefulDeployStack } from '../infrastructure/toolchain/stateful-deploy-stack';
 
 const app = new cdk.App();
 
@@ -13,6 +14,10 @@ if (!deployMode) {
 
 if (deployMode === 'stateless') {
   new StatelessDeployStack(app, 'StatelessFastqGluePipeline', {
+    env: TOOLCHAIN_ENVIRONMENT,
+  });
+} else if (deployMode === 'stateful') {
+  new StatefulDeployStack(app, 'StatefulFastqGluePipeline', {
     env: TOOLCHAIN_ENVIRONMENT,
   });
 } else {

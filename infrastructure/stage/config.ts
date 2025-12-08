@@ -1,6 +1,10 @@
-import { StatelessApplicationStackConfig } from './interfaces';
+import { StatefulApplicationStackConfig, StatelessApplicationStackConfig } from './interfaces';
 import { AWS_S3_CACHE_BUCKET_NAME, AWS_S3_PRIMARY_DATA_PREFIX, EVENT_BUS_NAME } from './constants';
 import { StageName } from '@orcabus/platform-cdk-constructs/shared-config/accounts';
+
+export const getStatefulStackProps = (): StatefulApplicationStackConfig => {
+  return {};
+};
 
 export const getStatelessStackProps = (stage: StageName): StatelessApplicationStackConfig => {
   return {
