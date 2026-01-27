@@ -130,8 +130,8 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
     # Check the header InstrumentPlatform / Instrument Type
     is_reversed = False
     if (
-            samplesheet['header'].get("instrument_platform", "").lower() == "novaseqxseries" or
-            samplesheet['header'].get("instrument_type", "").lower() == "novaseq x"
+            samplesheet['header'].get("instrumentPlatform", "").lower() == "novaseqxseries" or
+            samplesheet['header'].get("instrumentType", "").lower() == "novaseq x"
     ):
         # i5 Index is flipped, so we need to set the reverse complement flag
         is_reversed = True
