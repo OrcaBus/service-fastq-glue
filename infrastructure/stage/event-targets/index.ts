@@ -31,25 +31,13 @@ function buildBsshFastqCopySucceededToFastqSetAddReadSetEventBridgeTarget(
   );
 }
 
-function buildFastqSetsAddedToGenerateLibraryEventsEventBridgeTarget(
+function buildWorkflowWithBamToTriggerSomalierExtractEventBridgeTarget(
   props: AddSfnAsEventBridgeTargetProps
 ): void {
   props.eventBridgeRuleObj.addTarget(
     new eventsTargets.SfnStateMachine(props.stateMachineObj, {
       input: RuleTargetInput.fromObject({
-        instrumentRunId: EventField.fromPath('$.detail.instrumentRunId'),
-      }),
-    })
-  );
-}
-
-function buildFastqReadSetsAddedToGenerateFqlrEventBridgeTarget(
-  props: AddSfnAsEventBridgeTargetProps
-): void {
-  props.eventBridgeRuleObj.addTarget(
-    new eventsTargets.SfnStateMachine(props.stateMachineObj, {
-      input: RuleTargetInput.fromObject({
-        instrumentRunId: EventField.fromPath('$.detail.instrumentRunId'),
+        workflowRunObj: EventField.fromPath('$.detail'),
       }),
     })
   );
@@ -72,20 +60,6 @@ export function buildAllEventBridgeTargets(props: EventBridgeTargetsProps) {
       }
 
       // BSSH to AWS WRSC Events
-      case 'legacyBsshFastqCopySucceededToFastqSetAddReadSetSfn': {
-        buildBsshFastqCopySucceededToFastqSetAddReadSetEventBridgeTarget(<
-          AddSfnAsEventBridgeTargetProps
-        >{
-          eventBridgeRuleObj: props.eventBridgeRuleObjects.find(
-            (eventBridgeObject) =>
-              eventBridgeObject.ruleName === 'listenLegacyBsshFastqCopySucceededRule'
-          )?.ruleObject,
-          stateMachineObj: props.stepFunctionObjects.find(
-            (eventBridgeObject) => eventBridgeObject.stateMachineName === 'fastqSetAddReadSet'
-          )?.stateMachineObj,
-        });
-        break;
-      }
       case 'bsshFastqCopySucceededToFastqSetAddReadSetSfn': {
         buildBsshFastqCopySucceededToFastqSetAddReadSetEventBridgeTarget(<
           AddSfnAsEventBridgeTargetProps
@@ -100,30 +74,16 @@ export function buildAllEventBridgeTargets(props: EventBridgeTargetsProps) {
         break;
       }
 
-      // Fastq Glue Internal Events (for legacy workflows)
-      case 'fastqGlueFastqSetsAddedEventToStackyGenerateLibraryEventsSfn': {
-        buildFastqSetsAddedToGenerateLibraryEventsEventBridgeTarget(<
+      // Post analysis Events
+      case 'listenWorkflowWithBamRuleToTriggerSomalierExtractSfn': {
+        buildWorkflowWithBamToTriggerSomalierExtractEventBridgeTarget(<
           AddSfnAsEventBridgeTargetProps
         >{
           eventBridgeRuleObj: props.eventBridgeRuleObjects.find(
-            (eventBridgeObject) =>
-              eventBridgeObject.ruleName === 'listenFastqGlueFastqListRowsAdded'
+            (eventBridgeObject) => eventBridgeObject.ruleName === 'listenWorkflowWithBamRule'
           )?.ruleObject,
           stateMachineObj: props.stepFunctionObjects.find(
-            (eventBridgeObject) =>
-              eventBridgeObject.stateMachineName === 'stackyGenerateLibraryEvent'
-          )?.stateMachineObj,
-        });
-        break;
-      }
-      case 'fastqGlueReadSetsAddedEventToStackyGenerateFqlrsEventsSfn': {
-        buildFastqReadSetsAddedToGenerateFqlrEventBridgeTarget(<AddSfnAsEventBridgeTargetProps>{
-          eventBridgeRuleObj: props.eventBridgeRuleObjects.find(
-            (eventBridgeObject) => eventBridgeObject.ruleName === 'listenFastqGlueReadSetsAdded'
-          )?.ruleObject,
-          stateMachineObj: props.stepFunctionObjects.find(
-            (eventBridgeObject) =>
-              eventBridgeObject.stateMachineName === 'stackyGenerateFastqListRowEvent'
+            (eventBridgeObject) => eventBridgeObject.stateMachineName === 'triggerSomalierExtract'
           )?.stateMachineObj,
         });
         break;
