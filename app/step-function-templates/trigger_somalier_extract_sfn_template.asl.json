@@ -6,7 +6,7 @@
       "Type": "Pass",
       "Next": "Find bam file by library id",
       "Assign": {
-        "workflowRunObj": "{% $states.input.workflowObj %}"
+        "workflowRunObj": "{% $states.input.workflowRunObj %}"
       }
     },
     "Find bam file by library id": {
@@ -35,8 +35,7 @@
       "Next": "For each bam by library id",
       "Output": {},
       "Assign": {
-        "bamFileByLibraryId": "{% $states.result.Payload.bamFileByLibraryId %}",
-        "referenceName": "{% $states.result.Payload.referenceName %}"
+        "bamFileByLibraryIdList": "{% $states.result.Payload.bamFileByLibraryIdList %}"
       }
     },
     "For each bam by library id": {
@@ -52,7 +51,8 @@
             "Next": "Get current fastq set for library",
             "Assign": {
               "libraryIdIter": "{% $states.input.libraryId %}",
-              "bamUriIter": "{% $states.input.bamUri %}"
+              "bamUriIter": "{% $states.input.bamUri %}",
+              "referenceNameIter": "{% $states.input.referenceName %}"
             }
           },
           "Get current fastq set for library": {
@@ -91,7 +91,8 @@
               "FunctionName": "${__run_extract_fingerprint_lambda_function_arn__}",
               "Payload": {
                 "fastqSetId": "{% $fastqSetId %}",
-                "bamUri": "{% $bamUriIter %}"
+                "bamUri": "{% $bamUriIter %}",
+                "referenceName": "{% $referenceNameIter %}"
               }
             },
             "Retry": [
@@ -114,7 +115,7 @@
         }
       },
       "End": true,
-      "Items": "{% $bamFileByLibraryId %}"
+      "Items": "{% $bamFileByLibraryIdList %}"
     }
   },
   "QueryLanguage": "JSONata"

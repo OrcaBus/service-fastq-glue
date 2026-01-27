@@ -11,7 +11,9 @@ While the complement normal bam file can be found under *dragen_wgts_dna_somatic
 For dragen-wgts-rna workflows, the bam file can be found under *dragen_wgts_rna_variant_calling/<LIBID>.bam
 
 """
+# Standard imports
 from urllib.parse import urlunparse
+from typing import Literal, Dict, Final
 
 # Layer imports
 from orcabus_api_tools.workflow import get_latest_payload_from_workflow_run
@@ -19,9 +21,31 @@ from orcabus_api_tools.workflow.models import WorkflowRun
 from orcabus_api_tools.filemanager import list_files_from_portal_run_id
 
 # Globals
-DRAGEN_TSO500_CTDNA_WORKFLOW_NAME = "dragen-tso500-ctdna"
-DRAGEN_WGTS_DNA_WORKFLOW_NAME = "dragen-wgts-dna"
-DRAGEN_WGTS_RNA_WORKFLOW_NAME = "dragen-wgts-rna"
+# Define the Literal types with literal values (no variables inside Literal)
+WorkflowType = Literal[
+    "dragen-tso500-ctdna",
+    "dragen-wgts-dna",
+    "dragen-wgts-rna",
+]
+
+ReferenceType = Literal[
+    "hg19",
+    "hg38",
+]
+
+# Then assign constants typed to those Literal types (and mark Final)
+DRAGEN_TSO500_CTDNA_WORKFLOW_NAME: Final[WorkflowType] = "dragen-tso500-ctdna"
+DRAGEN_WGTS_DNA_WORKFLOW_NAME: Final[WorkflowType] = "dragen-wgts-dna"
+DRAGEN_WGTS_RNA_WORKFLOW_NAME: Final[WorkflowType] = "dragen-wgts-rna"
+
+REF_HG19: Final[ReferenceType] = "hg19"
+REF_HG38: Final[ReferenceType] = "hg38"
+
+REFERENCE_NAME_BY_WORKFLOW_NAME_MAP: Dict[WorkflowType, ReferenceType] = {
+    DRAGEN_TSO500_CTDNA_WORKFLOW_NAME: REF_HG19,
+    DRAGEN_WGTS_DNA_WORKFLOW_NAME: REF_HG38,
+    DRAGEN_WGTS_RNA_WORKFLOW_NAME: REF_HG38,
+}
 
 
 def get_file_uri_from_portal_run_id_and_suffix(
@@ -34,16 +58,19 @@ def get_file_uri_from_portal_run_id_and_suffix(
     :param suffix:
     :return:
     """
-    return next(map(
-        lambda file_iter_: str(urlunparse((
-            "s3", file_iter_['bucket'], file_iter_['key'],
-            None, None, None
-        ))),
-        filter(
-            lambda file_iter_: file_iter_['key'].endswith(suffix),
-            list_files_from_portal_run_id(portal_run_id=portal_run_id)
-        ))
-    )
+    try:
+        return next(map(
+            lambda file_iter_: str(urlunparse((
+                "s3", file_iter_['bucket'], file_iter_['key'],
+                None, None, None
+            ))),
+            filter(
+                lambda file_iter_: file_iter_['key'].endswith(suffix),
+                list_files_from_portal_run_id(portal_run_id=portal_run_id)
+            ))
+        )
+    except StopIteration:
+        raise FileNotFoundError(f"Bam file with suffix {suffix} not found for portal run id {portal_run_id}")
 
 
 def handler(event, context):
@@ -80,7 +107,8 @@ def handler(event, context):
                 "bamUri": get_file_uri_from_portal_run_id_and_suffix(
                     portal_run_id=portal_run_id,
                     suffix=f"Logs_Intermediates/DragenCaller/{library_id}/{library_id}_tumor.bam"
-                )
+                ),
+                "referenceName": REFERENCE_NAME_BY_WORKFLOW_NAME_MAP[workflow_name]
             }
         )
 
@@ -88,34 +116,29 @@ def handler(event, context):
         library_id = latest_payload['data']['tags']['libraryId']
         tumor_library_id = latest_payload['data']['tags'].get('tumorLibraryId', None)
 
-        # Get the normal library from the somatic calling step if tumor library id is present
+        # Get the tumor bam if we have a tumor library id
         if tumor_library_id is not None:
-            bams_by_library_id_list.extend([
+            bams_by_library_id_list.append(
                 {
                     "libraryId": tumor_library_id,
                     "bamUri": get_file_uri_from_portal_run_id_and_suffix(
                         portal_run_id=portal_run_id,
                         suffix=f"dragen_wgts_dna_somatic_variant_calling/{tumor_library_id}_tumor.bam"
-                    )
-                },
-                {
-                    "libraryId": library_id,
-                    "bamUri": get_file_uri_from_portal_run_id_and_suffix(
-                        portal_run_id=portal_run_id,
-                        suffix=f"dragen_wgts_dna_somatic_variant_calling/{library_id}_normal.bam"
-                    )
-                }
-            ])
-        else:
-            bams_by_library_id_list.append(
-                {
-                    "libraryId": library_id,
-                    "bamUri": get_file_uri_from_portal_run_id_and_suffix(
-                        portal_run_id=portal_run_id,
-                        suffix=f"dragen_wgts_dna_germline_variant_calling/{library_id}_normal.bam"
-                    )
+                    ),
+                    "referenceName": REFERENCE_NAME_BY_WORKFLOW_NAME_MAP[workflow_name]
                 }
             )
+        # Get the normal bam from the graph reference
+        bams_by_library_id_list.append(
+            {
+                "libraryId": library_id,
+                "bamUri": get_file_uri_from_portal_run_id_and_suffix(
+                    portal_run_id=portal_run_id,
+                    suffix=f"dragen_wgts_dna_germline_variant_calling/{library_id}.bam"
+                ),
+                "referenceName": REFERENCE_NAME_BY_WORKFLOW_NAME_MAP[workflow_name]
+            }
+        )
 
     elif workflow_name == DRAGEN_WGTS_RNA_WORKFLOW_NAME:
         library_id = latest_payload['data']['tags']['libraryId']
@@ -126,7 +149,8 @@ def handler(event, context):
                 "bamUri": get_file_uri_from_portal_run_id_and_suffix(
                     portal_run_id=portal_run_id,
                     suffix=f"dragen_wgts_rna_variant_calling/{library_id}.bam"
-                )
+                ),
+                "referenceName": REFERENCE_NAME_BY_WORKFLOW_NAME_MAP[workflow_name]
             }
         )
 
@@ -134,5 +158,5 @@ def handler(event, context):
         raise ValueError(f"Unsupported workflow name: {workflow_name}")
 
     return {
-        "bamsByLibraryId": bams_by_library_id_list
+        "bamFileByLibraryIdList": bams_by_library_id_list
     }
