@@ -10,6 +10,9 @@ export class StatelessDeployStack extends cdk.Stack {
     super(scope, id, props);
 
     new DeploymentStackPipeline(this, 'StatelessFastqGluePipeline', {
+      unitAppTestConfig: {
+        command: [],
+      },
       githubBranch: 'main',
       githubRepo: REPO_NAME,
       stack: StatelessApplicationStack,

@@ -26,7 +26,7 @@ export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): 
   /* Build the lambda function */
   const lambdaFunction = new PythonUvFunction(scope, props.lambdaName, {
     entry: path.join(LAMBDA_DIR, lambdaNameToSnakeCase + '_py'),
-    runtime: lambda.Runtime.PYTHON_3_12,
+    runtime: lambda.Runtime.PYTHON_3_14,
     architecture: lambda.Architecture.ARM_64,
     index: lambdaNameToSnakeCase + '.py',
     handler: 'handler',
@@ -85,18 +85,6 @@ export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): 
     metadataTrackingSheetIdSsmParameterObj.grantRead(lambdaFunction.currentVersion);
     gDriveAuthJsonSsmParameterObj.grantRead(lambdaFunction.currentVersion);
   }
-
-  // AwsSolutions-L1 - We'll migrate to PYTHON_3_13 ASAP, soz
-  NagSuppressions.addResourceSuppressions(
-    lambdaFunction,
-    [
-      {
-        id: 'AwsSolutions-L1',
-        reason: 'Will migrate to PYTHON_3_13 ASAP, soz',
-      },
-    ],
-    true
-  );
 
   /* Return the lambda object */
   return {
