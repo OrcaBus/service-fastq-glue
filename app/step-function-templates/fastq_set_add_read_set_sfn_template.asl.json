@@ -49,7 +49,7 @@
     "For each library (batched)": {
       "Type": "Map",
       "Label": "Foreachlibrarybatched",
-      "MaxConcurrency": 1000,
+      "MaxConcurrency": 1,
       "Items": "{% $states.input.libraryIdList %}",
       "ItemBatcher": {
         "BatchInput": {
