@@ -37,7 +37,8 @@ export interface EventBridgeRulePropsWithStatus extends EventBridgeRuleProps {
 
 export interface WorkflowRunStateChangeRuleProps extends EventBridgeRulePropsWithStatus {
   /* We also require the workflow name for both rules */
-  workflowName?: string;
+  workflowName: string;
+  workflowRunNamePrefix: string;
 }
 
 export type SequenceRunManagerRuleProps = EventBridgeRuleProps;
