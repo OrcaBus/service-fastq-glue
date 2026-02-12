@@ -67,8 +67,8 @@ import boto3
 import re
 import pandas as pd
 from datetime import datetime
-from os import environ
 import json
+from os import environ
 
 # Custom imports (only if we need to read the lab-metadata tracking sheet)
 from gspread_pandas import Spread
@@ -194,7 +194,7 @@ def create_fastq_set_from_df(
     """
     return create_fastq_set_object(
         library={
-            "libraryId": bclconvert_data_df["libraryId"].unique().item(),
+            "libraryId": pd.Series(bclconvert_data_df["libraryId"].unique()).item(),
         },
         allowAdditionalFastq=False,
         isCurrentFastqSet=True,
@@ -341,9 +341,15 @@ def has_existing_fastq_set(
 def is_topup(
         library_id: str,
 ) -> bool:
-    library_id_list = get_metadata_sheet_for_library_year(
-        get_year_from_library_id(library_id)
-    )['LibraryID'].dropna().unique().tolist()
+    library_id_list = (
+        get_metadata_sheet_for_library_year(
+            get_year_from_library_id(library_id)
+        )['LibraryID']
+        .dropna()
+        .unique()
+        .tolist()
+    )
+
 
     if f"{library_id}_topup" in library_id_list:
         return True
@@ -353,9 +359,14 @@ def is_topup(
 def is_rerun(
         library_id: str,
 ) -> bool:
-    library_id_list=get_metadata_sheet_for_library_year(
-        get_year_from_library_id(library_id)
-    )['LibraryID'].dropna().unique().tolist()
+    library_id_list = (
+        get_metadata_sheet_for_library_year(
+            get_year_from_library_id(library_id)
+        )['LibraryID']
+        .dropna()
+        .unique()
+        .tolist()
+    )
 
     if f"{library_id}_rerun" in library_id_list:
         return True
@@ -363,9 +374,9 @@ def is_rerun(
 
 
 def append_to_existing_fastq_set(
-    library_id: str,
-    instrument_run_id: str,
-    bclconvert_data_df: pd.DataFrame
+        library_id: str,
+        instrument_run_id: str,
+        bclconvert_data_df: pd.DataFrame
 ) -> FastqSet:
     """
     Append fastqs to the existing fastq set
@@ -413,7 +424,6 @@ def append_to_existing_fastq_set(
     disallow_additional_fastqs_to_fastq_set(fastq_set_id=fastq_set['id'])
 
     return fastq_set
-
 
 
 def replace_current_fastq_set(
@@ -484,7 +494,7 @@ def handler(event, context):
     # Check if has existing fastq set
     # If has existing fastq set for this instrument run id, we just return
     # Chances are we've already created the fastq set
-    library_id = bclconvert_data_df["libraryId"].unique().item()
+    library_id = pd.Series(bclconvert_data_df["libraryId"].unique()).item()
     if has_existing_fastq_set(
             library_id=library_id,
             instrument_run_id=instrument_run_id,
