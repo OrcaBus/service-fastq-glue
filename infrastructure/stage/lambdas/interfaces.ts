@@ -44,6 +44,9 @@ export interface LambdaRequirementProps {
 
   /* Needs orcabus api tools layer */
   needsOrcabusApiToolsLayer?: boolean;
+
+  /* Needs More memory */
+  needsMoreMemory?: boolean;
 }
 
 export interface BuildLambdasProps {
@@ -75,6 +78,7 @@ export const lambdaToRequirementsMap: LambdaToRequirementsMapType = {
   },
   createFastqSetObject: {
     needsOrcabusApiToolsLayer: true,
+    needsMoreMemory: true,
   },
   // Fastq add readset related
   addReadSetsToFastqObjects: {
