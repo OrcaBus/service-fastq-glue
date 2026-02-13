@@ -32,6 +32,7 @@ export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): 
     handler: 'handler',
     timeout: Duration.seconds(60),
     includeOrcabusApiToolsLayer: lambdaRequirementsMap.needsOrcabusApiToolsLayer,
+    memorySize: lambdaRequirementsMap.needsMoreMemory ? 1024 : undefined,
   });
 
   /* Do we need the bssh tools layer? */
