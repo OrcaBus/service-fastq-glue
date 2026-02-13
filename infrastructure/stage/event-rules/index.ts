@@ -10,6 +10,7 @@ import { Rule } from 'aws-cdk-lib/aws-events';
 import * as events from 'aws-cdk-lib/aws-events';
 import { Construct } from 'constructs';
 import {
+  AUTOMATED_WORKFLOW_PREFIX,
   BSSH_TO_AWS_S3_COPY_STATUS,
   BSSH_TO_AWS_S3_COPY_WORKFLOW_NAME,
   DRAGEN_TSO500_CTDNA_WORKFLOW_NAME,
@@ -55,6 +56,11 @@ function buildWorkflowRunStateChangeEventRule(
         workflow: {
           name: [{ 'equals-ignore-case': props.workflowName }],
         },
+        workflowRunName: [
+          {
+            prefix: props.workflowRunNamePrefix,
+          },
+        ],
       },
     },
     eventBus: props.eventBus,
@@ -115,6 +121,7 @@ export function buildAllEventRules(
             eventDetailType: WORKFLOW_RUN_STATE_CHANGE_EVENT_DETAIL_TYPE,
             eventStatus: BSSH_TO_AWS_S3_COPY_STATUS,
             workflowName: BSSH_TO_AWS_S3_COPY_WORKFLOW_NAME,
+            workflowRunNamePrefix: AUTOMATED_WORKFLOW_PREFIX,
           }),
         });
         break;
