@@ -73,7 +73,7 @@ def get_sample_bclconvert_data_from_v2_samplesheet(
                         bclconvert_row_iter_['index'] +
                         (
                             "+" + get_index(bclconvert_row_iter_['index2'], is_reversed=is_reversed)
-                            if bclconvert_row_iter_['index2']
+                            if bclconvert_row_iter_.get('index2')
                             else ""
                         )
                 ),
