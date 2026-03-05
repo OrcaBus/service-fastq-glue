@@ -30,7 +30,9 @@ export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): 
     architecture: lambda.Architecture.ARM_64,
     index: lambdaNameToSnakeCase + '.py',
     handler: 'handler',
-    timeout: Duration.seconds(60),
+    timeout: lambdaRequirementsMap.needsLongerTimeout
+      ? Duration.seconds(300)
+      : Duration.seconds(60),
     includeOrcabusApiToolsLayer: lambdaRequirementsMap.needsOrcabusApiToolsLayer,
     memorySize: lambdaRequirementsMap.needsMoreMemory ? 1024 : undefined,
   });

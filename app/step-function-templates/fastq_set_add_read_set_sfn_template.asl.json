@@ -237,7 +237,8 @@
               "fileNamesList": "{% $states.context.Map.Item.Value.fileNamesList %}",
               "demuxData": "{% $states.context.Map.Item.Value.demuxData %}"
             },
-            "Output": {}
+            "Output": {},
+            "MaxConcurrency": 1
           }
         }
       },
