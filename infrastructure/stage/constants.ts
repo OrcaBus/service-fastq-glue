@@ -37,6 +37,9 @@ export const SSM_PARAMETER_PATH_PREFIX = path.join(`/orcabus/fastq-glue/`);
 export const FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE = 'FastqListRowsAdded';
 export const READ_SETS_ADDED_EVENT_DETAIL_TYPE = 'ReadSetsAdded';
 
+/* UMCCR Constants */
+export const AUTOMATED_WORKFLOW_PREFIX = 'umccr--automated--';
+
 /*
 AWS S3 Resources differ between environments
 */
