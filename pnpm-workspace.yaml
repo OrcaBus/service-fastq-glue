@@ -1,2 +1,4 @@
-overrides:
-  diff@<4.0.4: '>=4.0.4'
+allowBuilds:
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - ts-jest@29.4.11
