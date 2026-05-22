@@ -3,7 +3,8 @@ import {
   EventBridgeRuleObject,
   EventBridgeRulesProps,
   MultiWorkflowRunStateChangeRuleProps,
-  SequenceRunManagerRuleProps,
+  SequenceRunSampleSheetStateChangeRuleProps,
+  SequenceRunStateChangeRuleProps,
   WorkflowRunStateChangeRuleProps,
 } from './interfaces';
 import { Rule } from 'aws-cdk-lib/aws-events';
@@ -16,7 +17,9 @@ import {
   DRAGEN_WGTS_DNA_WORKFLOW_NAME,
   DRAGEN_WGTS_RNA_WORKFLOW_NAME,
   SEQUENCE_RUN_MANAGER_EVENT_SOURCE,
+  SEQUENCE_RUN_MANAGER_FAILURE_STATUS,
   SEQUENCE_RUN_MANAGER_SAMPLESHEET_CHANGE_DETAIL_TYPE,
+  SEQUENCE_RUN_MANAGER_STATE_CHANGE_DETAIL_TYPE,
   STACK_PREFIX,
   WORKFLOW_MANAGER_EVENT_SOURCE,
   WORKFLOW_RUN_STATE_CHANGE_EVENT_DETAIL_TYPE,
@@ -29,13 +32,30 @@ https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-pattern-opera
 
 function buildSequenceRunManagerStateChangeEventRule(
   scope: Construct,
-  props: SequenceRunManagerRuleProps
+  props: SequenceRunSampleSheetStateChangeRuleProps
 ): Rule {
   return new events.Rule(scope, props.ruleName, {
     ruleName: `${STACK_PREFIX}--${props.ruleName}`,
     eventPattern: {
       source: [props.eventSource],
       detailType: [props.eventDetailType],
+    },
+    eventBus: props.eventBus,
+  });
+}
+
+function buildSequenceRunManagerFailureEventRule(
+  scope: Construct,
+  props: SequenceRunStateChangeRuleProps
+): Rule {
+  return new events.Rule(scope, props.ruleName, {
+    ruleName: `${STACK_PREFIX}--${props.ruleName}`,
+    eventPattern: {
+      source: [props.eventSource],
+      detailType: [props.eventDetailType],
+      detail: {
+        status: [props.status],
+      },
     },
     eventBus: props.eventBus,
   });
@@ -92,7 +112,7 @@ export function buildAllEventRules(
   for (const ruleName of eventBridgeNameList) {
     switch (ruleName) {
       /* SRM SampleSheet State Change */
-      case 'listenSrmSampleSheetStateChange': {
+      case 'listenSrmSampleSheetStateChangeRule': {
         eventBridgeRuleObjects.push({
           ruleName: ruleName,
           ruleObject: buildSequenceRunManagerStateChangeEventRule(scope, {
@@ -100,6 +120,20 @@ export function buildAllEventRules(
             eventSource: SEQUENCE_RUN_MANAGER_EVENT_SOURCE,
             eventBus: props.eventBus,
             eventDetailType: SEQUENCE_RUN_MANAGER_SAMPLESHEET_CHANGE_DETAIL_TYPE,
+          }),
+        });
+        break;
+      }
+      /* SRM Failure Rule */
+      case 'listenSrmStateChangeFailureRule': {
+        eventBridgeRuleObjects.push({
+          ruleName: ruleName,
+          ruleObject: buildSequenceRunManagerFailureEventRule(scope, {
+            ruleName: ruleName,
+            eventSource: SEQUENCE_RUN_MANAGER_EVENT_SOURCE,
+            eventBus: props.eventBus,
+            eventDetailType: SEQUENCE_RUN_MANAGER_STATE_CHANGE_DETAIL_TYPE,
+            status: SEQUENCE_RUN_MANAGER_FAILURE_STATUS,
           }),
         });
         break;
