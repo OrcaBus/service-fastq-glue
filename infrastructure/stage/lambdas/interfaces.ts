@@ -8,7 +8,7 @@ export type LambdaNameList =
   | 'getBclconvertDataFromSamplesheet'
   | 'createFastqSetObject'
   // Fastq deprecation
-  | 'getFastqandFastqSetIdsFromInstrumentRunId'
+  | 'getFastqAndFastqSetIdsFromInstrumentRunId'
   | 'unlinkFastqFromFastqSet'
   | 'invalidateFastq'
   // Add readset related
@@ -27,7 +27,7 @@ export const lambdaNameList: Array<LambdaNameList> = [
   'getBclconvertDataFromSamplesheet',
   'createFastqSetObject',
   // Fastq deprecation
-  'getFastqandFastqSetIdsFromInstrumentRunId',
+  'getFastqAndFastqSetIdsFromInstrumentRunId',
   'unlinkFastqFromFastqSet',
   'invalidateFastq',
   // Add readset related
@@ -93,7 +93,7 @@ export const lambdaToRequirementsMap: LambdaToRequirementsMapType = {
     needsLongerTimeout: true,
   },
   // Fastq deprecation
-  getFastqandFastqSetIdsFromInstrumentRunId: {
+  getFastqAndFastqSetIdsFromInstrumentRunId: {
     needsOrcabusApiToolsLayer: true,
   },
   unlinkFastqFromFastqSet: {

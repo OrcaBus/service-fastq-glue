@@ -49,7 +49,7 @@ export const fastqSetAddReadSetLambdaList: Array<LambdaNameList> = [
 ];
 
 export const handleSequencingRunFailureLambdaList: Array<LambdaNameList> = [
-  'getFastqandFastqSetIdsFromInstrumentRunId',
+  'getFastqAndFastqSetIdsFromInstrumentRunId',
   'unlinkFastqFromFastqSet',
   'invalidateFastq',
 ];
