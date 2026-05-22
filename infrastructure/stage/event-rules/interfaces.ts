@@ -2,7 +2,9 @@ import { IEventBus, Rule } from 'aws-cdk-lib/aws-events';
 
 export type EventBridgeNameList =
   /* Listen to Srm SampleSheet status changes */
-  | 'listenSrmSampleSheetStateChange'
+  | 'listenSrmSampleSheetStateChangeRule'
+  /* Listen to Srm State Change Failures */
+  | 'listenSrmStateChangeFailureRule'
   /* Listen to bssh Fastq Copy Ready rule */
   | 'listenBsshFastqCopySucceededRule'
   /* Dragen WGTS DNA / TSO500 ctDNA */
@@ -10,7 +12,9 @@ export type EventBridgeNameList =
 
 export const eventBridgeNameList: EventBridgeNameList[] = [
   /* Listen to Srm SampleSheet status changes */
-  'listenSrmSampleSheetStateChange',
+  'listenSrmSampleSheetStateChangeRule',
+  /* Listen to Srm State Change Failures */
+  'listenSrmStateChangeFailureRule',
   /* Listen to bssh Fastq Copy Ready rule */
   'listenBsshFastqCopySucceededRule',
   /* Listen to Workflow with Bam rule */
@@ -40,7 +44,11 @@ export interface WorkflowRunStateChangeRuleProps extends EventBridgeRulePropsWit
   workflowName?: string;
 }
 
-export type SequenceRunManagerRuleProps = EventBridgeRuleProps;
+export type SequenceRunSampleSheetStateChangeRuleProps = EventBridgeRuleProps;
+export interface SequenceRunStateChangeRuleProps extends EventBridgeRuleProps {
+  /* We also require a status */
+  status: string;
+}
 
 export interface MultiWorkflowRunStateChangeRuleProps extends EventBridgeRulePropsWithStatus {
   /* We also require the workflow name for both rules */

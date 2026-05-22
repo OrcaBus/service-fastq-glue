@@ -1,0 +1,147 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Set env vars",
+  "States": {
+    "Set env vars": {
+      "Type": "Pass",
+      "Next": "Get fastq and fastq set ids from instrument run id",
+      "Assign": {
+        "instrumentRunId": "{% $states.input.instrumentRunId %}"
+      }
+    },
+    "Get fastq and fastq set ids from instrument run id": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Arguments": {
+        "FunctionName": "${__get_fastq_and_fastq_set_ids_from_instrument_run_id__}",
+        "Payload": {
+          "instrumentRunId": "{% $instrumentRunId %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Unlink and invalidate fastqs (batched)",
+      "Output": {
+        "fastqAndFastqSetIdPairs": "{% $states.result.Payload.fastqAndFastqSetIdPairs %}"
+      }
+    },
+    "Unlink and invalidate fastqs (batched)": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "Unlink and invalidate fastqs",
+        "States": {
+          "Unlink and invalidate fastqs": {
+            "Type": "Map",
+            "ItemProcessor": {
+              "ProcessorConfig": {
+                "Mode": "INLINE"
+              },
+              "StartAt": "Unlink Fastq from Fastq Set",
+              "States": {
+                "Unlink Fastq from Fastq Set": {
+                  "Type": "Task",
+                  "Resource": "arn:aws:states:::lambda:invoke",
+                  "Output": {
+                    "fastqId": "{% $states.input.fastqId %}"
+                  },
+                  "Arguments": {
+                    "FunctionName": "${__unlink_fastq_from_fastq_set_lambda_function_arn__}",
+                    "Payload": {
+                      "fastqId": "{% $states.input.fastqId %}",
+                      "fastqSetId": "{% $states.input.fastqSetId %}"
+                    }
+                  },
+                  "Retry": [
+                    {
+                      "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                      ],
+                      "IntervalSeconds": 1,
+                      "MaxAttempts": 3,
+                      "BackoffRate": 2,
+                      "JitterStrategy": "FULL"
+                    }
+                  ],
+                  "Next": "Invalidate Fastq"
+                },
+                "Invalidate Fastq": {
+                  "Type": "Task",
+                  "Resource": "arn:aws:states:::lambda:invoke",
+                  "Output": "{% $states.result.Payload %}",
+                  "Arguments": {
+                    "FunctionName": "${__invalidate_fastq_lambda_function_arn__}",
+                    "Payload": {
+                      "fastqId": "{% $states.input.fastqId %}"
+                    }
+                  },
+                  "Retry": [
+                    {
+                      "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                      ],
+                      "IntervalSeconds": 1,
+                      "MaxAttempts": 3,
+                      "BackoffRate": 2,
+                      "JitterStrategy": "FULL"
+                    }
+                  ],
+                  "End": true
+                }
+              }
+            },
+            "End": true,
+            "Items": "{% $states.input.Items %}",
+            "MaxConcurrency": 1
+          }
+        }
+      },
+      "Label": "Unlinkandinvalidatefastqsbatched",
+      "MaxConcurrency": 1,
+      "ItemBatcher": {
+        "MaxItemsPerBatch": 10
+      },
+      "Items": "{% $states.input.fastqAndFastqSetIdPairs %}",
+      "Next": "SRM Clean Up Event"
+    },
+    "SRM Clean Up Event": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::events:putEvents",
+      "Arguments": {
+        "Entries": [
+          {
+            "Detail": {
+              "instrumentRunId": "{% $instrumentRunId %}"
+            },
+            "DetailType": "${__srm_clean_up_detail_type__}",
+            "EventBusName": "${__event_bus_name__}",
+            "Source": "${__stack_event_source__}"
+          }
+        ]
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}

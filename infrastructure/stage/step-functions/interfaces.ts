@@ -6,6 +6,8 @@ import { LambdaNameList, LambdaObject } from '../lambdas/interfaces';
 export type SfnName =
   // Pre BCLConvert
   | 'fastqSetGeneration'
+  // Handle SRM failure
+  | 'handleSequencingRunFailure'
   // Post BCLConvert - BSSH Copy
   | 'fastqSetAddReadSet'
   // Post-analysis
@@ -14,6 +16,8 @@ export type SfnName =
 export const sfnNameList: Array<SfnName> = [
   // Pre BCLConvert
   'fastqSetGeneration',
+  // Handle SRM failure
+  'handleSequencingRunFailure',
   // Post BCLConvert - BSSH Copy
   'fastqSetAddReadSet',
   // Post-analysis
@@ -44,6 +48,12 @@ export const fastqSetAddReadSetLambdaList: Array<LambdaNameList> = [
   'getSampleDemultiplexStats',
 ];
 
+export const handleSequencingRunFailureLambdaList: Array<LambdaNameList> = [
+  'getFastqAndFastqSetIdsFromInstrumentRunId',
+  'unlinkFastqFromFastqSet',
+  'invalidateFastq',
+];
+
 export const triggerSomalierExtractLambdaList: Array<LambdaNameList> = [
   'getBamByLibraryId',
   'runExtractFingerprint',
@@ -66,6 +76,17 @@ export const SfnRequirementsMapType: { [key in SfnName]: SfnRequirementsProps } 
   fastqSetGeneration: {
     /* Lambdas */
     requiredLambdaNameList: fastqSetGenerationLambdaList,
+
+    /* Event stuff */
+    needsPutEvents: true,
+
+    /* Sfn specific */
+    needsDistributedMapPolicy: true,
+  },
+  // Handle SRM failure
+  handleSequencingRunFailure: {
+    /* Lambdas */
+    requiredLambdaNameList: handleSequencingRunFailureLambdaList,
 
     /* Event stuff */
     needsPutEvents: true,
