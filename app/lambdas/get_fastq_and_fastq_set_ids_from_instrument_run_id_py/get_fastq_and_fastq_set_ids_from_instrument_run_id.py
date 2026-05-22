@@ -5,7 +5,7 @@ Get fastq and fastq set ids from instrument run id
 """
 
 # Standard imports
-from typing import TypedDict, List, cast
+from typing import TypedDict, Dict, List, cast
 
 # Orcabus tools
 from orcabus_api_tools.fastq import get_fastqs_in_instrument_run_id
@@ -17,7 +17,7 @@ class ResponseDict(TypedDict):
     fastqSetId: str
 
 
-def handler(event, context) -> List[ResponseDict]:
+def handler(event, context) -> Dict[str, List[ResponseDict]]:
     """
     Get fastq and fastq set ids from instrument run id
     """
@@ -27,7 +27,7 @@ def handler(event, context) -> List[ResponseDict]:
     # Get fastq list
     fastq_list = get_fastqs_in_instrument_run_id(instrument_run_id)
 
-    return list(map(
+    fastq_id_and_fastq_set_id_pairs: List[ResponseDict] = list(map(
         lambda fastq_iter_: cast(
             ResponseDict,
             cast(
@@ -40,3 +40,7 @@ def handler(event, context) -> List[ResponseDict]:
         ),
         fastq_list,
     ))
+
+    return {
+        "fastqAndFastqSetIdPairs": fastq_id_and_fastq_set_id_pairs
+    }
