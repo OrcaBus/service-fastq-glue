@@ -6,7 +6,19 @@ import {
 import * as eventsTargets from 'aws-cdk-lib/aws-events-targets';
 import { EventField, RuleTargetInput } from 'aws-cdk-lib/aws-events';
 
-function buildSrmSucceededToFastqSetGenerationSfnEventBridgeTarget(
+function buildSrmSampleSheetCreationToFastqSetGenerationSfnEventBridgeTarget(
+  props: AddSfnAsEventBridgeTargetProps
+): void {
+  props.eventBridgeRuleObj.addTarget(
+    new eventsTargets.SfnStateMachine(props.stateMachineObj, {
+      input: RuleTargetInput.fromObject({
+        instrumentRunId: EventField.fromPath('$.detail.instrumentRunId'),
+      }),
+    })
+  );
+}
+
+function buildSrmFailureToFastqSetGenerationSfnEventBridgeTarget(
   props: AddSfnAsEventBridgeTargetProps
 ): void {
   props.eventBridgeRuleObj.addTarget(
@@ -47,10 +59,13 @@ export function buildAllEventBridgeTargets(props: EventBridgeTargetsProps) {
   for (const eventBridgeTargetsName of eventBridgeTargetsNameList) {
     switch (eventBridgeTargetsName) {
       // SRM events
-      case 'sequenceRunManagerSucceededToFastqSetGenerationSfn': {
-        buildSrmSucceededToFastqSetGenerationSfnEventBridgeTarget(<AddSfnAsEventBridgeTargetProps>{
+      case 'sequenceRunManagerHasSampleSheetToFastqSetGenerationSfn': {
+        buildSrmSampleSheetCreationToFastqSetGenerationSfnEventBridgeTarget(<
+          AddSfnAsEventBridgeTargetProps
+        >{
           eventBridgeRuleObj: props.eventBridgeRuleObjects.find(
-            (eventBridgeObject) => eventBridgeObject.ruleName === 'listenSrmSampleSheetStateChange'
+            (eventBridgeObject) =>
+              eventBridgeObject.ruleName === 'listenSrmSampleSheetStateChangeRule'
           )?.ruleObject,
           stateMachineObj: props.stepFunctionObjects.find(
             (eventBridgeObject) => eventBridgeObject.stateMachineName === 'fastqSetGeneration'
@@ -58,7 +73,19 @@ export function buildAllEventBridgeTargets(props: EventBridgeTargetsProps) {
         });
         break;
       }
-
+      // Post BCLConvert - Mitigate workflow failure
+      case 'sequenceRunManagerFailureToFastqSetMitigation': {
+        buildSrmFailureToFastqSetGenerationSfnEventBridgeTarget(<AddSfnAsEventBridgeTargetProps>{
+          eventBridgeRuleObj: props.eventBridgeRuleObjects.find(
+            (eventBridgeObject) => eventBridgeObject.ruleName === 'listenSrmStateChangeFailureRule'
+          )?.ruleObject,
+          stateMachineObj: props.stepFunctionObjects.find(
+            (eventBridgeObject) =>
+              eventBridgeObject.stateMachineName === 'handleSequencingRunFailure'
+          )?.stateMachineObj,
+        });
+        break;
+      }
       // BSSH to AWS WRSC Events
       case 'bsshFastqCopySucceededToFastqSetAddReadSetSfn': {
         buildBsshFastqCopySucceededToFastqSetAddReadSetEventBridgeTarget(<

@@ -5,7 +5,9 @@ import { SfnObject } from '../step-functions/interfaces';
 
 export type EventBridgeTargetsNameList =
   // Pre BCLConvert
-  | 'sequenceRunManagerSucceededToFastqSetGenerationSfn'
+  | 'sequenceRunManagerHasSampleSheetToFastqSetGenerationSfn'
+  // Post BCLConvert - Mitigate workflow failure
+  | 'sequenceRunManagerFailureToFastqSetMitigation'
   // Post BCLConvert - Pre Staging
   | 'bsshFastqCopySucceededToFastqSetAddReadSetSfn'
   // Post Staging - Analysis
@@ -13,7 +15,9 @@ export type EventBridgeTargetsNameList =
 
 export const eventBridgeTargetsNameList: Array<EventBridgeTargetsNameList> = [
   // Pre BCLConvert
-  'sequenceRunManagerSucceededToFastqSetGenerationSfn',
+  'sequenceRunManagerHasSampleSheetToFastqSetGenerationSfn',
+  // Post BCLConvert - Mitigate workflow failure
+  'sequenceRunManagerFailureToFastqSetMitigation',
   // Post BCLConvert - Pre Staging
   'bsshFastqCopySucceededToFastqSetAddReadSetSfn',
   // Post Staging - Analysis

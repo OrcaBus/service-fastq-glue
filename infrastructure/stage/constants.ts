@@ -39,6 +39,7 @@ export const SSM_PARAMETER_PATH_PREFIX = path.join(`/orcabus/fastq-glue/`);
 /* Event Details */
 export const FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE = 'FastqListRowsAdded';
 export const READ_SETS_ADDED_EVENT_DETAIL_TYPE = 'ReadSetsAdded';
+export const SRM_CLEANUP_EVENT_DETAIL_TYPE = 'SrmFailureCleanupFastqCompleted';
 
 /*
 AWS S3 Resources differ between environments
