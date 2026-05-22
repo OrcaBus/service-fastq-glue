@@ -1,6 +1,10 @@
-export type SchemaNames = 'FastqListRowsAdded' | 'ReadSetsAdded';
+export type SchemaNames = 'FastqListRowsAdded' | 'ReadSetsAdded' | 'SrmFailureCleanupFastq';
 
-export const schemaNamesList: SchemaNames[] = ['FastqListRowsAdded', 'ReadSetsAdded'];
+export const schemaNamesList: SchemaNames[] = [
+  'FastqListRowsAdded',
+  'ReadSetsAdded',
+  'SrmFailureCleanupFastq',
+];
 
 export interface BuildSchemaProps {
   schemaName: SchemaNames;
