@@ -11,6 +11,7 @@ import { Construct } from 'constructs';
 import {
   FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE,
   READ_SETS_ADDED_EVENT_DETAIL_TYPE,
+  SRM_CLEANUP_EVENT_DETAIL_TYPE,
   STACK_PREFIX,
   STACK_SOURCE,
   STEP_FUNCTIONS_DIR,
@@ -56,6 +57,7 @@ function createStateMachineDefinitionSubstitutions(props: BuildSfnProps): {
     FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE;
   definitionSubstitutions['__read_sets_added_event_detail_type__'] =
     READ_SETS_ADDED_EVENT_DETAIL_TYPE;
+  definitionSubstitutions['__srm_clean_up_detail_type__'] = SRM_CLEANUP_EVENT_DETAIL_TYPE;
 
   /* Substitute the event source in the state machine definition */
   definitionSubstitutions['__stack_event_source__'] = STACK_SOURCE;
