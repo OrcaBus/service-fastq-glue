@@ -17,6 +17,7 @@ export type LambdaNameList =
   | 'getFileNamesFromFastqListCsv'
   | 'getSampleDemultiplexStats'
   // Extract fingerprint related
+  | 'findMissingFingerprints'
   | 'getBamByLibraryId'
   | 'runExtractFingerprint'
   | 'getFastqSetIdByLibrary';
@@ -36,6 +37,7 @@ export const lambdaNameList: Array<LambdaNameList> = [
   'getFileNamesFromFastqListCsv',
   'getSampleDemultiplexStats',
   // Extract fingerprint related
+  'findMissingFingerprints',
   'getBamByLibraryId',
   'runExtractFingerprint',
   'getFastqSetIdByLibrary',
@@ -117,6 +119,9 @@ export const lambdaToRequirementsMap: LambdaToRequirementsMapType = {
     needsAwsReadAccess: true,
   },
   // Extract fingerprint related
+  findMissingFingerprints: {
+    needsOrcabusApiToolsLayer: true,
+  },
   getBamByLibraryId: {
     needsOrcabusApiToolsLayer: true,
   },
