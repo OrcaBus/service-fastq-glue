@@ -31,7 +31,7 @@ function buildSrmFailureToFastqSetGenerationSfnEventBridgeTarget(
 }
 
 function buildAddMissingFingerprintsSfnEventBridgeTarget(
-    props: AddSfnAsEventBridgeTargetProps
+  props: AddSfnAsEventBridgeTargetProps
 ): void {
   props.eventBridgeRuleObj.addTarget(
     new eventsTargets.SfnStateMachine(props.stateMachineObj, {

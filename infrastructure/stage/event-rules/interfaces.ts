@@ -43,7 +43,7 @@ export interface EventBridgeRulePropsWithStatus extends EventBridgeRuleProps {
   eventStatus: string;
 }
 
-export type ReadSetsAddedRuleProps = EventBridgeRuleProps
+export type ReadSetsAddedRuleProps = EventBridgeRuleProps;
 
 export interface WorkflowRunStateChangeRuleProps extends EventBridgeRulePropsWithStatus {
   /* We also require the workflow name for both rules */

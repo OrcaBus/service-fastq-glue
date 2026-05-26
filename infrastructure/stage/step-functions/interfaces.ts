@@ -25,7 +25,7 @@ export const sfnNameList: Array<SfnName> = [
   // Post-analysis
   'triggerSomalierExtract',
   // Post-post-analysis
-  'addMissingFingerprints'
+  'addMissingFingerprints',
 ];
 
 export interface SfnProps {
@@ -66,8 +66,8 @@ export const triggerSomalierExtractLambdaList: Array<LambdaNameList> = [
 
 export const addMissingFingerprintsLambdaList: Array<LambdaNameList> = [
   'findMissingFingerprints',
-  'runExtractFingerprint'
-]
+  'runExtractFingerprint',
+];
 
 export interface SfnRequirementsProps {
   /* Lambdas */

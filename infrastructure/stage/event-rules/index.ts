@@ -16,12 +16,14 @@ import {
   BSSH_TO_AWS_S3_COPY_WORKFLOW_NAME,
   DRAGEN_TSO500_CTDNA_WORKFLOW_NAME,
   DRAGEN_WGTS_DNA_WORKFLOW_NAME,
-  DRAGEN_WGTS_RNA_WORKFLOW_NAME, READ_SETS_ADDED_EVENT_DETAIL_TYPE,
+  DRAGEN_WGTS_RNA_WORKFLOW_NAME,
+  READ_SETS_ADDED_EVENT_DETAIL_TYPE,
   SEQUENCE_RUN_MANAGER_EVENT_SOURCE,
   SEQUENCE_RUN_MANAGER_FAILURE_STATUS,
   SEQUENCE_RUN_MANAGER_SAMPLESHEET_CHANGE_DETAIL_TYPE,
   SEQUENCE_RUN_MANAGER_STATE_CHANGE_DETAIL_TYPE,
-  STACK_PREFIX, STACK_SOURCE,
+  STACK_PREFIX,
+  STACK_SOURCE,
   WORKFLOW_MANAGER_EVENT_SOURCE,
   WORKFLOW_RUN_STATE_CHANGE_EVENT_DETAIL_TYPE,
 } from '../constants';
@@ -82,10 +84,7 @@ function buildWorkflowRunStateChangeEventRule(
   });
 }
 
-function buildReadSetsAddedRule(
-  scope: Construct,
-  props: ReadSetsAddedRuleProps
-): Rule {
+function buildReadSetsAddedRule(scope: Construct, props: ReadSetsAddedRuleProps): Rule {
   return new events.Rule(scope, props.ruleName, {
     ruleName: `${STACK_PREFIX}--${props.ruleName}`,
     eventPattern: {
