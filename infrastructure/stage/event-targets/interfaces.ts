@@ -11,7 +11,9 @@ export type EventBridgeTargetsNameList =
   // Post BCLConvert - Pre Staging
   | 'bsshFastqCopySucceededToFastqSetAddReadSetSfn'
   // Post Staging - Analysis
-  | 'listenWorkflowWithBamRuleToTriggerSomalierExtractSfn';
+  | 'listenWorkflowWithBamRuleToTriggerSomalierExtractSfn'
+  // Post-Post - Analysis
+  | 'listenReadSetsAddedToAddMissingFingerprintsSfn';
 
 export const eventBridgeTargetsNameList: Array<EventBridgeTargetsNameList> = [
   // Pre BCLConvert
@@ -22,6 +24,8 @@ export const eventBridgeTargetsNameList: Array<EventBridgeTargetsNameList> = [
   'bsshFastqCopySucceededToFastqSetAddReadSetSfn',
   // Post Staging - Analysis
   'listenWorkflowWithBamRuleToTriggerSomalierExtractSfn',
+  // Post-Post - Analysis
+  'listenReadSetsAddedToAddMissingFingerprintsSfn',
 ];
 
 export interface AddSfnAsEventBridgeTargetProps {
