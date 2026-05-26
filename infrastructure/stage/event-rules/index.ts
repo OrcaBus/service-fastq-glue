@@ -3,6 +3,7 @@ import {
   EventBridgeRuleObject,
   EventBridgeRulesProps,
   MultiWorkflowRunStateChangeRuleProps,
+  ReadSetsAddedRuleProps,
   SequenceRunSampleSheetStateChangeRuleProps,
   SequenceRunStateChangeRuleProps,
   WorkflowRunStateChangeRuleProps,
@@ -15,12 +16,12 @@ import {
   BSSH_TO_AWS_S3_COPY_WORKFLOW_NAME,
   DRAGEN_TSO500_CTDNA_WORKFLOW_NAME,
   DRAGEN_WGTS_DNA_WORKFLOW_NAME,
-  DRAGEN_WGTS_RNA_WORKFLOW_NAME,
+  DRAGEN_WGTS_RNA_WORKFLOW_NAME, READ_SETS_ADDED_EVENT_DETAIL_TYPE,
   SEQUENCE_RUN_MANAGER_EVENT_SOURCE,
   SEQUENCE_RUN_MANAGER_FAILURE_STATUS,
   SEQUENCE_RUN_MANAGER_SAMPLESHEET_CHANGE_DETAIL_TYPE,
   SEQUENCE_RUN_MANAGER_STATE_CHANGE_DETAIL_TYPE,
-  STACK_PREFIX,
+  STACK_PREFIX, STACK_SOURCE,
   WORKFLOW_MANAGER_EVENT_SOURCE,
   WORKFLOW_RUN_STATE_CHANGE_EVENT_DETAIL_TYPE,
 } from '../constants';
@@ -76,6 +77,20 @@ function buildWorkflowRunStateChangeEventRule(
           name: [{ 'equals-ignore-case': props.workflowName }],
         },
       },
+    },
+    eventBus: props.eventBus,
+  });
+}
+
+function buildReadSetsAddedRule(
+  scope: Construct,
+  props: ReadSetsAddedRuleProps
+): Rule {
+  return new events.Rule(scope, props.ruleName, {
+    ruleName: `${STACK_PREFIX}--${props.ruleName}`,
+    eventPattern: {
+      source: [props.eventSource],
+      detailType: [props.eventDetailType],
     },
     eventBus: props.eventBus,
   });
@@ -149,6 +164,19 @@ export function buildAllEventRules(
             eventDetailType: WORKFLOW_RUN_STATE_CHANGE_EVENT_DETAIL_TYPE,
             eventStatus: BSSH_TO_AWS_S3_COPY_STATUS,
             workflowName: BSSH_TO_AWS_S3_COPY_WORKFLOW_NAME,
+          }),
+        });
+        break;
+      }
+      /* listenReadsetsAddedRule */
+      case 'listenReadsetsAddedRule': {
+        eventBridgeRuleObjects.push({
+          ruleName: ruleName,
+          ruleObject: buildReadSetsAddedRule(scope, {
+            ruleName: ruleName,
+            eventSource: STACK_SOURCE, // This is from within!
+            eventDetailType: READ_SETS_ADDED_EVENT_DETAIL_TYPE,
+            eventBus: props.eventBus,
           }),
         });
         break;
