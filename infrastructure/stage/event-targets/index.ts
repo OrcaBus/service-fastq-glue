@@ -30,6 +30,18 @@ function buildSrmFailureToFastqSetGenerationSfnEventBridgeTarget(
   );
 }
 
+function buildAddMissingFingerprintsSfnEventBridgeTarget(
+  props: AddSfnAsEventBridgeTargetProps
+): void {
+  props.eventBridgeRuleObj.addTarget(
+    new eventsTargets.SfnStateMachine(props.stateMachineObj, {
+      input: RuleTargetInput.fromObject({
+        instrumentRunId: EventField.fromPath('$.detail.instrumentRunId'),
+      }),
+    })
+  );
+}
+
 function buildBsshFastqCopySucceededToFastqSetAddReadSetEventBridgeTarget(
   props: AddSfnAsEventBridgeTargetProps
 ): void {
@@ -111,6 +123,19 @@ export function buildAllEventBridgeTargets(props: EventBridgeTargetsProps) {
           )?.ruleObject,
           stateMachineObj: props.stepFunctionObjects.find(
             (eventBridgeObject) => eventBridgeObject.stateMachineName === 'triggerSomalierExtract'
+          )?.stateMachineObj,
+        });
+        break;
+      }
+
+      // Post-post analysis events
+      case 'listenReadSetsAddedToAddMissingFingerprintsSfn': {
+        buildAddMissingFingerprintsSfnEventBridgeTarget(<AddSfnAsEventBridgeTargetProps>{
+          eventBridgeRuleObj: props.eventBridgeRuleObjects.find(
+            (eventBridgeObject) => eventBridgeObject.ruleName === 'listenReadsetsAddedRule'
+          )?.ruleObject,
+          stateMachineObj: props.stepFunctionObjects.find(
+            (eventBridgeObject) => eventBridgeObject.stateMachineName === 'addMissingFingerprints'
           )?.stateMachineObj,
         });
         break;

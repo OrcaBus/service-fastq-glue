@@ -18,14 +18,19 @@ def handler(event, context):
     :return:
     """
 
+    # Get inputs
     fastq_set_id = event['fastqSetId']
     reference_name = event['referenceName']
-    bam_uri = event['bamUri']
+    bam_uri = event.get('bamUri', None)
 
+    # Run fingerprint extraction
     run_extract_fingerprint(
-        fastq_set_id=fastq_set_id,
-        reference_name=reference_name,
-        bam_uri=bam_uri
+        **dict(filter(
+            lambda kv_iter_: kv_iter_[1] is not None,
+            {
+                "fastq_set_id": fastq_set_id,
+                "reference_name": reference_name,
+                "bam_uri": bam_uri,
+            }.items()
+        ))
     )
-
-    return {}

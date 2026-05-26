@@ -41,6 +41,9 @@ export const FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE = 'FastqListRowsAdded';
 export const READ_SETS_ADDED_EVENT_DETAIL_TYPE = 'ReadSetsAdded';
 export const SRM_CLEANUP_EVENT_DETAIL_TYPE = 'SrmFailureCleanupFastqCompleted';
 
+/* Somalier constants */
+export const DEFAULT_REFERENCE_NAME = 'hg38';
+
 /*
 AWS S3 Resources differ between environments
 */

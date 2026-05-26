@@ -11,7 +11,9 @@ export type SfnName =
   // Post BCLConvert - BSSH Copy
   | 'fastqSetAddReadSet'
   // Post-analysis
-  | 'triggerSomalierExtract';
+  | 'triggerSomalierExtract'
+  // Post-post analysis
+  | 'addMissingFingerprints';
 
 export const sfnNameList: Array<SfnName> = [
   // Pre BCLConvert
@@ -22,6 +24,8 @@ export const sfnNameList: Array<SfnName> = [
   'fastqSetAddReadSet',
   // Post-analysis
   'triggerSomalierExtract',
+  // Post-post-analysis
+  'addMissingFingerprints',
 ];
 
 export interface SfnProps {
@@ -58,6 +62,11 @@ export const triggerSomalierExtractLambdaList: Array<LambdaNameList> = [
   'getBamByLibraryId',
   'runExtractFingerprint',
   'getFastqSetIdByLibrary',
+];
+
+export const addMissingFingerprintsLambdaList: Array<LambdaNameList> = [
+  'findMissingFingerprints',
+  'runExtractFingerprint',
 ];
 
 export interface SfnRequirementsProps {
@@ -109,6 +118,13 @@ export const SfnRequirementsMapType: { [key in SfnName]: SfnRequirementsProps } 
   triggerSomalierExtract: {
     /* Lambdas */
     requiredLambdaNameList: triggerSomalierExtractLambdaList,
+  },
+  // Post-post analysis
+  addMissingFingerprints: {
+    /* Lambdas */
+    requiredLambdaNameList: addMissingFingerprintsLambdaList,
+    /* Sfn specific */
+    needsDistributedMapPolicy: true,
   },
 };
 

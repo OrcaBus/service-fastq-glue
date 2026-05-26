@@ -7,6 +7,8 @@ export type EventBridgeNameList =
   | 'listenSrmStateChangeFailureRule'
   /* Listen to bssh Fastq Copy Ready rule */
   | 'listenBsshFastqCopySucceededRule'
+  /* Listen to readsets added rule */
+  | 'listenReadsetsAddedRule'
   /* Dragen WGTS DNA / TSO500 ctDNA */
   | 'listenWorkflowWithBamRule';
 
@@ -17,6 +19,8 @@ export const eventBridgeNameList: EventBridgeNameList[] = [
   'listenSrmStateChangeFailureRule',
   /* Listen to bssh Fastq Copy Ready rule */
   'listenBsshFastqCopySucceededRule',
+  /* Listen to readsets added rule */
+  'listenReadsetsAddedRule',
   /* Listen to Workflow with Bam rule */
   'listenWorkflowWithBamRule',
 ];
@@ -38,6 +42,8 @@ export interface EventBridgeRulePropsWithStatus extends EventBridgeRuleProps {
   /* Event Status */
   eventStatus: string;
 }
+
+export type ReadSetsAddedRuleProps = EventBridgeRuleProps;
 
 export interface WorkflowRunStateChangeRuleProps extends EventBridgeRulePropsWithStatus {
   /* We also require the workflow name for both rules */
