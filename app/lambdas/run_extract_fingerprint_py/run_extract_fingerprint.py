@@ -34,4 +34,3 @@ def handler(event, context):
             }.items()
         ))
     )
-
