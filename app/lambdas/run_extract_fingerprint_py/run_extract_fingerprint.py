@@ -26,7 +26,7 @@ def handler(event, context):
     # Run fingerprint extraction
     run_extract_fingerprint(
         **dict(filter(
-            lambda kv_iter_: kv_iter_ is not None,
+            lambda kv_iter_: kv_iter_[1] is not None,
             {
                 "fastq_set_id": fastq_set_id,
                 "reference_name": reference_name,
