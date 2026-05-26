@@ -44,6 +44,9 @@ export const SRM_CLEANUP_EVENT_DETAIL_TYPE = 'SrmFailureCleanupFastqCompleted';
 /* Somalier constants */
 export const DEFAULT_REFERENCE_NAME = 'hg38';
 
+/* UMCCR Constants */
+export const AUTOMATED_WORKFLOW_PREFIX = 'umccr--automated--';
+
 /*
 AWS S3 Resources differ between environments
 */
