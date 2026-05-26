@@ -1,0 +1,106 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Set vars",
+  "States": {
+    "Set vars": {
+      "Type": "Pass",
+      "Next": "Wait one day for processing",
+      "Assign": {
+        "instrumentRunId": "{% $states.input.instrumentRunId %}"
+      }
+    },
+    "Wait one day for processing": {
+      "Type": "Wait",
+      "Seconds": "{% /* One whole day */ 60 * 60 * 24 %}",
+      "Next": "Find fastq sets without a fingerprint"
+    },
+    "Find fastq sets without a fingerprint": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Arguments": {
+        "FunctionName": "${__find_missing_fingerprints_lambda_function_arn__}",
+        "Payload": {
+          "instrumentRunId": "{% $instrumentRunId %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Output": {
+        "fastqSetIdList": "{% $states.input.fastqSetIdList %}"
+      },
+      "Next": "Generate fingerprints for missing fastq sets (batched)"
+    },
+    "Generate fingerprints for missing fastq sets (batched)": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "Generate fingerprints for missing fastq sets",
+        "States": {
+          "Generate fingerprints for missing fastq sets": {
+            "Type": "Map",
+            "ItemProcessor": {
+              "ProcessorConfig": {
+                "Mode": "INLINE"
+              },
+              "StartAt": "Run extract fingerprint",
+              "States": {
+                "Run extract fingerprint": {
+                  "Type": "Task",
+                  "Resource": "arn:aws:states:::lambda:invoke",
+                  "Arguments": {
+                    "Payload": {
+                      "fastqSetId": "{% $states.input %}",
+                      "referenceName": "${__default_reference_name__}"
+                    },
+                    "FunctionName": "${__run_extract_fingerprint_lambda_function_arn__}"
+                  },
+                  "Retry": [
+                    {
+                      "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                      ],
+                      "IntervalSeconds": 1,
+                      "MaxAttempts": 3,
+                      "BackoffRate": 2,
+                      "JitterStrategy": "FULL"
+                    }
+                  ],
+                  "End": true
+                }
+              }
+            },
+            "End": true,
+            "Items": "{% $states.input.Items %}",
+            "MaxConcurrency": 1
+          }
+        }
+      },
+      "End": true,
+      "Label": "Generatefingerprintsformissingfastqsetsbatched",
+      "MaxConcurrency": 1,
+      "Items": "{% $states.input.fastqSetIdList %}",
+      "ItemBatcher": {
+        "MaxItemsPerBatch": 10
+      }
+    }
+  },
+  "QueryLanguage": "JSONata"
+}
