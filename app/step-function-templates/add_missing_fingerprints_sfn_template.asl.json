@@ -38,7 +38,7 @@
         }
       ],
       "Output": {
-        "fastqSetIdList": "{% $states.input.fastqSetIdList %}"
+        "fastqSetIdList": "{% $states.result.Payload.fastqSetIdList %}"
       },
       "Next": "Generate fingerprints for missing fastq sets (batched)"
     },

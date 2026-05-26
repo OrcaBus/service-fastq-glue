@@ -4,6 +4,7 @@
 Find missing fingerprints
 
 Given an instrument run id, query the fastq manager for
+fastq set IDs missing somalier fingerprints.
 """
 
 # Standard imports
