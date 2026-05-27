@@ -35,12 +35,12 @@
     "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.59.4"
+    "typescript-eslint": "^8.60.0"
   },
   "dependencies": {
-    "@aws-cdk/aws-lambda-python-alpha": "2.256.0-alpha.0",
-    "@orcabus/platform-cdk-constructs": "1.5.4",
-    "aws-cdk-lib": "^2.256.1",
+    "@aws-cdk/aws-lambda-python-alpha": "2.257.0-alpha.0",
+    "@orcabus/platform-cdk-constructs": "1.6.1",
+    "aws-cdk-lib": "^2.257.0",
     "constructs": "^10.6.0"
   }
 }

@@ -2,3 +2,4 @@ allowBuilds:
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - ts-jest@29.4.11
+  - '@orcabus/platform-cdk-constructs@1.6.1'
