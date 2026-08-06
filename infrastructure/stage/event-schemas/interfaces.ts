@@ -1,7 +1,5 @@
 export type SchemaNames =
-  | 'FastqListRowsAdded'
-  | 'ReadSetsAdded'
-  | 'SrmFailureCleanupFastqCompleted';
+  'FastqListRowsAdded' | 'ReadSetsAdded' | 'SrmFailureCleanupFastqCompleted';
 
 export const schemaNamesList: SchemaNames[] = [
   'FastqListRowsAdded',
