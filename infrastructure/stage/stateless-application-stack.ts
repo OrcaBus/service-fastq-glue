@@ -31,12 +31,14 @@ export class StatelessApplicationStack extends cdk.Stack {
         s3Bucket: s3Bucket,
         s3Prefix: props.awsS3PrimaryDataPrefix,
       },
+      archiveBucketName: props.archiveBucketName,
     });
 
     // Build Step Functions
     const stepFunctionObjects = buildAllStepFunctions(this, {
       lambdas: lambdas,
       eventBus: eventBus,
+      dataMoverSfnArn: props.dataMoverSfnArn,
     });
 
     // Build Event Rules

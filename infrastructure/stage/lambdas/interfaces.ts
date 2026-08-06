@@ -20,7 +20,12 @@ export type LambdaNameList =
   | 'findMissingFingerprints'
   | 'getBamByLibraryId'
   | 'runExtractFingerprint'
-  | 'getFastqSetIdByLibrary';
+  | 'getFastqSetIdByLibrary'
+  // BCL archiving related
+  | 'deleteBasespaceRunData'
+  // FASTQ archiving related
+  | 'getFastqCopyOutputUri'
+  | 'getArchiveDestinationUri';
 
 export const lambdaNameList: Array<LambdaNameList> = [
   // Fastq set creation
@@ -41,6 +46,11 @@ export const lambdaNameList: Array<LambdaNameList> = [
   'getBamByLibraryId',
   'runExtractFingerprint',
   'getFastqSetIdByLibrary',
+  // BCL archiving related
+  'deleteBasespaceRunData',
+  // FASTQ archiving related
+  'getFastqCopyOutputUri',
+  'getArchiveDestinationUri',
 ];
 
 export interface S3BucketPrefix {
@@ -60,11 +70,20 @@ export interface LambdaRequirementProps {
 
   /* Needs Longer timeout */
   needsLongerTimeout?: boolean;
+
+  /* Needs SSM parameter read access */
+  needsSsmParameterAccess?: boolean;
+
+  /* Needs Secrets Manager read access */
+  needsSecretsManagerAccess?: boolean;
 }
 
 export interface BuildLambdasProps {
   /* Specific env vars */
   s3BucketPrefix: S3BucketPrefix;
+
+  /* Archive bucket name for FASTQ archiving */
+  archiveBucketName?: string;
 }
 
 export interface BuildLambdaProps extends BuildLambdasProps {
@@ -129,6 +148,20 @@ export const lambdaToRequirementsMap: LambdaToRequirementsMapType = {
     needsOrcabusApiToolsLayer: true,
   },
   getFastqSetIdByLibrary: {
+    needsOrcabusApiToolsLayer: true,
+  },
+  // BCL archiving related
+  deleteBasespaceRunData: {
+    needsSsmParameterAccess: true,
+    needsSecretsManagerAccess: true,
+    needsLongerTimeout: true,
+  },
+  // FASTQ archiving related
+  getFastqCopyOutputUri: {
+    needsOrcabusApiToolsLayer: true,
+    needsLongerTimeout: true,
+  },
+  getArchiveDestinationUri: {
     needsOrcabusApiToolsLayer: true,
   },
 };

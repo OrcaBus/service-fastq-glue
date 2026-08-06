@@ -22,6 +22,12 @@ export interface StatelessApplicationStackConfig {
   */
   awsS3CacheBucketName: string;
   awsS3PrimaryDataPrefix: string;
+
+  /* External SFN ARN for data-mover */
+  dataMoverSfnArn: string;
+
+  /* Archive bucket name */
+  archiveBucketName: string;
 }
 
 export type StatefulApplicationStackConfig = object;

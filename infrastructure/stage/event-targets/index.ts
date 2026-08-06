@@ -42,6 +42,30 @@ function buildAddMissingFingerprintsSfnEventBridgeTarget(
   );
 }
 
+function buildBclDeletionRequestToSequencingRunBclArchivingSfnTarget(
+  props: AddSfnAsEventBridgeTargetProps
+): void {
+  props.eventBridgeRuleObj.addTarget(
+    new eventsTargets.SfnStateMachine(props.stateMachineObj, {
+      input: RuleTargetInput.fromObject({
+        instrumentRunId: EventField.fromPath('$.detail.instrumentRunId'),
+      }),
+    })
+  );
+}
+
+function buildFastqArchivingRequestToSequencingRunFastqArchivingSfnTarget(
+  props: AddSfnAsEventBridgeTargetProps
+): void {
+  props.eventBridgeRuleObj.addTarget(
+    new eventsTargets.SfnStateMachine(props.stateMachineObj, {
+      input: RuleTargetInput.fromObject({
+        instrumentRunId: EventField.fromPath('$.detail.instrumentRunId'),
+      }),
+    })
+  );
+}
+
 function buildBsshFastqCopySucceededToFastqSetAddReadSetEventBridgeTarget(
   props: AddSfnAsEventBridgeTargetProps
 ): void {
@@ -136,6 +160,38 @@ export function buildAllEventBridgeTargets(props: EventBridgeTargetsProps) {
           )?.ruleObject,
           stateMachineObj: props.stepFunctionObjects.find(
             (eventBridgeObject) => eventBridgeObject.stateMachineName === 'addMissingFingerprints'
+          )?.stateMachineObj,
+        });
+        break;
+      }
+
+      // BCL archiving events
+      case 'bclDeletionRequestToSequencingRunBclArchivingSfn': {
+        buildBclDeletionRequestToSequencingRunBclArchivingSfnTarget(<
+          AddSfnAsEventBridgeTargetProps
+        >{
+          eventBridgeRuleObj: props.eventBridgeRuleObjects.find(
+            (eventBridgeObject) => eventBridgeObject.ruleName === 'listenBclDeletionRequestRule'
+          )?.ruleObject,
+          stateMachineObj: props.stepFunctionObjects.find(
+            (eventBridgeObject) =>
+              eventBridgeObject.stateMachineName === 'sequencingRunBclArchiving'
+          )?.stateMachineObj,
+        });
+        break;
+      }
+
+      // FASTQ archiving events
+      case 'fastqArchivingRequestToSequencingRunFastqArchivingSfn': {
+        buildFastqArchivingRequestToSequencingRunFastqArchivingSfnTarget(<
+          AddSfnAsEventBridgeTargetProps
+        >{
+          eventBridgeRuleObj: props.eventBridgeRuleObjects.find(
+            (eventBridgeObject) => eventBridgeObject.ruleName === 'listenFastqArchivingRequestRule'
+          )?.ruleObject,
+          stateMachineObj: props.stepFunctionObjects.find(
+            (eventBridgeObject) =>
+              eventBridgeObject.stateMachineName === 'sequencingRunFastqArchiving'
           )?.stateMachineObj,
         });
         break;

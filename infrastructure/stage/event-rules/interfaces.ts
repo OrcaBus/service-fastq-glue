@@ -10,7 +10,11 @@ export type EventBridgeNameList =
   /* Listen to readsets added rule */
   | 'listenReadsetsAddedRule'
   /* Dragen WGTS DNA / TSO500 ctDNA */
-  | 'listenWorkflowWithBamRule';
+  | 'listenWorkflowWithBamRule'
+  /* Listen to BCL deletion request */
+  | 'listenBclDeletionRequestRule'
+  /* Listen to FASTQ archiving request */
+  | 'listenFastqArchivingRequestRule';
 
 export const eventBridgeNameList: EventBridgeNameList[] = [
   /* Listen to Srm SampleSheet status changes */
@@ -23,6 +27,10 @@ export const eventBridgeNameList: EventBridgeNameList[] = [
   'listenReadsetsAddedRule',
   /* Listen to Workflow with Bam rule */
   'listenWorkflowWithBamRule',
+  /* Listen to BCL deletion request */
+  'listenBclDeletionRequestRule',
+  /* Listen to FASTQ archiving request */
+  'listenFastqArchivingRequestRule',
 ];
 
 /* EventBridge Interfaces */

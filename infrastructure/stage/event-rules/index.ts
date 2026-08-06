@@ -12,11 +12,13 @@ import { Rule } from 'aws-cdk-lib/aws-events';
 import * as events from 'aws-cdk-lib/aws-events';
 import { Construct } from 'constructs';
 import {
+  BCL_DELETION_REQUEST_EVENT_DETAIL_TYPE,
   BSSH_TO_AWS_S3_COPY_STATUS,
   BSSH_TO_AWS_S3_COPY_WORKFLOW_NAME,
   DRAGEN_TSO500_CTDNA_WORKFLOW_NAME,
   DRAGEN_WGTS_DNA_WORKFLOW_NAME,
   DRAGEN_WGTS_RNA_WORKFLOW_NAME,
+  FASTQ_ARCHIVING_REQUEST_EVENT_DETAIL_TYPE,
   READ_SETS_ADDED_EVENT_DETAIL_TYPE,
   SEQUENCE_RUN_MANAGER_EVENT_SOURCE,
   SEQUENCE_RUN_MANAGER_FAILURE_STATUS,
@@ -89,6 +91,19 @@ function buildReadSetsAddedRule(scope: Construct, props: ReadSetsAddedRuleProps)
     ruleName: `${STACK_PREFIX}--${props.ruleName}`,
     eventPattern: {
       source: [props.eventSource],
+      detailType: [props.eventDetailType],
+    },
+    eventBus: props.eventBus,
+  });
+}
+
+function buildDetailTypeOnlyRule(
+  scope: Construct,
+  props: { ruleName: string; eventDetailType: string; eventBus: events.IEventBus }
+): Rule {
+  return new events.Rule(scope, props.ruleName, {
+    ruleName: `${STACK_PREFIX}--${props.ruleName}`,
+    eventPattern: {
       detailType: [props.eventDetailType],
     },
     eventBus: props.eventBus,
@@ -195,6 +210,30 @@ export function buildAllEventRules(
               DRAGEN_WGTS_RNA_WORKFLOW_NAME,
               DRAGEN_TSO500_CTDNA_WORKFLOW_NAME,
             ],
+          }),
+        });
+        break;
+      }
+      /* BCL Deletion Request Rule */
+      case 'listenBclDeletionRequestRule': {
+        eventBridgeRuleObjects.push({
+          ruleName: ruleName,
+          ruleObject: buildDetailTypeOnlyRule(scope, {
+            ruleName: ruleName,
+            eventDetailType: BCL_DELETION_REQUEST_EVENT_DETAIL_TYPE,
+            eventBus: props.eventBus,
+          }),
+        });
+        break;
+      }
+      /* FASTQ Archiving Request Rule */
+      case 'listenFastqArchivingRequestRule': {
+        eventBridgeRuleObjects.push({
+          ruleName: ruleName,
+          ruleObject: buildDetailTypeOnlyRule(scope, {
+            ruleName: ruleName,
+            eventDetailType: FASTQ_ARCHIVING_REQUEST_EVENT_DETAIL_TYPE,
+            eventBus: props.eventBus,
           }),
         });
         break;

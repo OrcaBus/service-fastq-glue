@@ -1,0 +1,57 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Set env vars",
+  "States": {
+    "Set env vars": {
+      "Type": "Pass",
+      "Next": "Delete Basespace run data",
+      "Assign": {
+        "instrumentRunId": "{% $states.input.instrumentRunId %}"
+      }
+    },
+    "Delete Basespace run data": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "Payload": {
+          "instrumentRunId": "{% $instrumentRunId %}"
+        },
+        "FunctionName": "${__delete_basespace_run_data_lambda_function_arn__}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Instrument Run ID BCL Deletion Event"
+    },
+    "Instrument Run ID BCL Deletion Event": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::events:putEvents",
+      "Arguments": {
+        "Entries": [
+          {
+            "Detail": {
+              "instrumentRunId": "{% $instrumentRunIdMapIter %}"
+            },
+            "DetailType": "${__bcl_instrument_run_deletion_event__}",
+            "EventBusName": "${__event_bus_name__}",
+            "Source": "${__stack_source__}"
+          }
+        ]
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}
