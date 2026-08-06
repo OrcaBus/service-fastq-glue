@@ -1,0 +1,102 @@
+{
+  "Comment": "Archive FASTQ data for a sequencing run by moving it to the archive bucket",
+  "StartAt": "Set env vars",
+  "States": {
+    "Set env vars": {
+      "Type": "Pass",
+      "Next": "Get source URI from workflow",
+      "Assign": {
+        "instrumentRunId": "{% $states.input.instrumentRunId %}"
+      }
+    },
+    "Get source URI from workflow": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "${__get_fastq_copy_output_uri_lambda_function_arn__}",
+        "Payload": {
+          "instrumentRunId": "{% $instrumentRunId %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Get archive destination URI",
+      "Assign": {
+        "sourceUri": "{% $states.result.Payload.outputUri %}"
+      }
+    },
+    "Get archive destination URI": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "${__get_archive_destination_uri_lambda_function_arn__}",
+        "Payload": {
+          "instrumentRunId": "{% $instrumentRunId %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Move instrument run id to archive",
+      "Assign": {
+        "destinationUri": "{% $states.result.Payload.destinationUri %}"
+      }
+    },
+    "Move instrument run id to archive": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::states:startExecution.sync:2",
+      "Arguments": {
+        "StateMachineArn": "${__data_mover_sfn_arn__}",
+        "Input": {
+          "command": "move",
+          "source": "{% $sourceUri %}",
+          "destination": "{% $destinationUri %}"
+        }
+      },
+      "Next": "Instrument Run ID Archived Event"
+    },
+    "Instrument Run ID Archived Event": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::events:putEvents",
+      "Arguments": {
+        "Entries": [
+          {
+            "Detail": {
+              "instrumentRunId": "{% $instrumentRunId %}"
+            },
+            "DetailType": "${__fastq_instrument_run_archived_event__}",
+            "EventBusName": "${__event_bus_name__}",
+            "Source": "${__stack_source__}"
+          }
+        ]
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}
