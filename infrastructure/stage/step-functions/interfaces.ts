@@ -13,7 +13,11 @@ export type SfnName =
   // Post-analysis
   | 'triggerSomalierExtract'
   // Post-post analysis
-  | 'addMissingFingerprints';
+  | 'addMissingFingerprints'
+  // BCL archiving
+  | 'sequencingRunBclArchiving'
+  // FASTQ archiving
+  | 'sequencingRunFastqArchiving';
 
 export const sfnNameList: Array<SfnName> = [
   // Pre BCLConvert
@@ -26,6 +30,10 @@ export const sfnNameList: Array<SfnName> = [
   'triggerSomalierExtract',
   // Post-post-analysis
   'addMissingFingerprints',
+  // BCL archiving
+  'sequencingRunBclArchiving',
+  // FASTQ archiving
+  'sequencingRunFastqArchiving',
 ];
 
 export interface SfnProps {
@@ -69,6 +77,15 @@ export const addMissingFingerprintsLambdaList: Array<LambdaNameList> = [
   'runExtractFingerprint',
 ];
 
+export const sequencingRunBclArchivingLambdaList: Array<LambdaNameList> = [
+  'deleteBasespaceRunData',
+];
+
+export const sequencingRunFastqArchivingLambdaList: Array<LambdaNameList> = [
+  'getFastqCopyOutputUri',
+  'getArchiveDestinationUri',
+];
+
 export interface SfnRequirementsProps {
   /* Lambdas */
   requiredLambdaNameList?: LambdaNameList[];
@@ -78,6 +95,9 @@ export interface SfnRequirementsProps {
 
   /* Sfn specific */
   needsDistributedMapPolicy?: boolean;
+
+  /* Needs to start an external SFN */
+  needsStartExternalSfn?: boolean;
 }
 
 export const SfnRequirementsMapType: { [key in SfnName]: SfnRequirementsProps } = {
@@ -126,6 +146,25 @@ export const SfnRequirementsMapType: { [key in SfnName]: SfnRequirementsProps } 
     /* Sfn specific */
     needsDistributedMapPolicy: true,
   },
+  // BCL archiving
+  sequencingRunBclArchiving: {
+    /* Lambdas */
+    requiredLambdaNameList: sequencingRunBclArchivingLambdaList,
+
+    /* Event stuff */
+    needsPutEvents: true,
+  },
+  // FASTQ archiving
+  sequencingRunFastqArchiving: {
+    /* Lambdas */
+    requiredLambdaNameList: sequencingRunFastqArchivingLambdaList,
+
+    /* Event stuff */
+    needsPutEvents: true,
+
+    /* Needs to start external data-mover SFN */
+    needsStartExternalSfn: true,
+  },
 };
 
 export interface BuildSfnProps extends SfnProps {
@@ -134,6 +173,9 @@ export interface BuildSfnProps extends SfnProps {
 
   /* Event Stuff */
   eventBus: IEventBus;
+
+  /* External SFN ARN (e.g., data-mover) */
+  dataMoverSfnArn?: string;
 }
 
 export interface BuildSfnsProps {
@@ -142,6 +184,9 @@ export interface BuildSfnsProps {
 
   /* Event Stuff */
   eventBus: IEventBus;
+
+  /* External SFN ARN (e.g., data-mover) */
+  dataMoverSfnArn?: string;
 }
 
 export interface WirePermissionsProps extends BuildSfnProps {

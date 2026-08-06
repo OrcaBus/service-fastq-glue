@@ -10,6 +10,8 @@ import { camelCaseToSnakeCase } from '../utils';
 import { Construct } from 'constructs';
 import {
   DEFAULT_REFERENCE_NAME,
+  BCL_DELETION_COMPLETED_EVENT_DETAIL_TYPE,
+  FASTQ_ARCHIVING_COMPLETED_EVENT_DETAIL_TYPE,
   FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE,
   READ_SETS_ADDED_EVENT_DETAIL_TYPE,
   SRM_CLEANUP_EVENT_DETAIL_TYPE,
@@ -59,12 +61,22 @@ function createStateMachineDefinitionSubstitutions(props: BuildSfnProps): {
   definitionSubstitutions['__read_sets_added_event_detail_type__'] =
     READ_SETS_ADDED_EVENT_DETAIL_TYPE;
   definitionSubstitutions['__srm_clean_up_detail_type__'] = SRM_CLEANUP_EVENT_DETAIL_TYPE;
+  definitionSubstitutions['__bcl_instrument_run_deletion_event__'] =
+    BCL_DELETION_COMPLETED_EVENT_DETAIL_TYPE;
+  definitionSubstitutions['__fastq_instrument_run_archived_event__'] =
+    FASTQ_ARCHIVING_COMPLETED_EVENT_DETAIL_TYPE;
 
   /* Add in the default reference name */
   definitionSubstitutions['__default_reference_name__'] = DEFAULT_REFERENCE_NAME;
 
   /* Substitute the event source in the state machine definition */
   definitionSubstitutions['__stack_event_source__'] = STACK_SOURCE;
+  definitionSubstitutions['__stack_source__'] = STACK_SOURCE;
+
+  /* Substitute the data-mover SFN ARN if provided */
+  if (props.dataMoverSfnArn) {
+    definitionSubstitutions['__data_mover_sfn_arn__'] = props.dataMoverSfnArn;
+  }
 
   return definitionSubstitutions;
 }
@@ -94,6 +106,44 @@ function wireUpStateMachinePermissions(scope: Construct, props: WirePermissionsP
       );
     }
     props.eventBus.grantPutEventsTo(props.stateMachineObj);
+  }
+
+  /* Wire up external SFN execution permissions */
+  if (sfnRequirements.needsStartExternalSfn && props.dataMoverSfnArn) {
+    const externalSfnPolicy = new iam.Policy(
+      scope,
+      `${props.stateMachineName}-external-sfn-policy`,
+      {
+        document: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              resources: [props.dataMoverSfnArn],
+              actions: ['states:StartExecution'],
+            }),
+            new iam.PolicyStatement({
+              resources: [`${props.dataMoverSfnArn}:*`],
+              actions: ['states:DescribeExecution', 'states:StopExecution'],
+            }),
+            new iam.PolicyStatement({
+              resources: [`arn:aws:states:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:express:*`],
+              actions: ['events:PutTargets', 'events:PutRule', 'events:DescribeRule'],
+            }),
+          ],
+        }),
+      }
+    );
+    props.stateMachineObj.role.attachInlinePolicy(externalSfnPolicy);
+
+    NagSuppressions.addResourceSuppressions(
+      [props.stateMachineObj, externalSfnPolicy],
+      [
+        {
+          id: 'AwsSolutions-IAM5',
+          reason:
+            'This policy is required to allow the state machine to start and monitor executions of the external data-mover SFN.',
+        },
+      ]
+    );
   }
 
   /* Check if the state machine needs the abilty to start / monitor distributed maps */

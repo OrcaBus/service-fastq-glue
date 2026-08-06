@@ -13,7 +13,11 @@ export type EventBridgeTargetsNameList =
   // Post Staging - Analysis
   | 'listenWorkflowWithBamRuleToTriggerSomalierExtractSfn'
   // Post-Post - Analysis
-  | 'listenReadSetsAddedToAddMissingFingerprintsSfn';
+  | 'listenReadSetsAddedToAddMissingFingerprintsSfn'
+  // BCL archiving
+  | 'bclDeletionRequestToSequencingRunBclArchivingSfn'
+  // FASTQ archiving
+  | 'fastqArchivingRequestToSequencingRunFastqArchivingSfn';
 
 export const eventBridgeTargetsNameList: Array<EventBridgeTargetsNameList> = [
   // Pre BCLConvert
@@ -26,6 +30,10 @@ export const eventBridgeTargetsNameList: Array<EventBridgeTargetsNameList> = [
   'listenWorkflowWithBamRuleToTriggerSomalierExtractSfn',
   // Post-Post - Analysis
   'listenReadSetsAddedToAddMissingFingerprintsSfn',
+  // BCL archiving
+  'bclDeletionRequestToSequencingRunBclArchivingSfn',
+  // FASTQ archiving
+  'fastqArchivingRequestToSequencingRunFastqArchivingSfn',
 ];
 
 export interface AddSfnAsEventBridgeTargetProps {

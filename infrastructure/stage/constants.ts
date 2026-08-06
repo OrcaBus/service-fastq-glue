@@ -40,6 +40,10 @@ export const SSM_PARAMETER_PATH_PREFIX = path.join(`/orcabus/fastq-glue/`);
 export const FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE = 'FastqListRowsAdded';
 export const READ_SETS_ADDED_EVENT_DETAIL_TYPE = 'ReadSetsAdded';
 export const SRM_CLEANUP_EVENT_DETAIL_TYPE = 'SrmFailureCleanupFastqCompleted';
+export const BCL_DELETION_REQUEST_EVENT_DETAIL_TYPE = 'SequencingRunBclDeletionRequest';
+export const BCL_DELETION_COMPLETED_EVENT_DETAIL_TYPE = 'SequencingRunBclDeletionCompleted';
+export const FASTQ_ARCHIVING_REQUEST_EVENT_DETAIL_TYPE = 'SequencingRunFastqArchivingRequest';
+export const FASTQ_ARCHIVING_COMPLETED_EVENT_DETAIL_TYPE = 'SequencingRunFastqArchivingCompleted';
 
 /* Somalier constants */
 export const DEFAULT_REFERENCE_NAME = 'hg38';
@@ -58,6 +62,24 @@ export const AWS_S3_PRIMARY_DATA_PREFIX: Record<StageName, string> = {
   ['GAMMA']: 'byob-icav2/staging/primary/',
   ['PROD']: 'byob-icav2/production/primary/',
 };
+
+/* Data-mover SFN ARN per environment */
+export const DATA_MOVER_SFN_ARN: Record<StageName, string> = {
+  ['BETA']: 'arn:aws:states:ap-southeast-2:503977275616:stateMachine:orcabus-data-migrate-mover',
+  ['GAMMA']: 'arn:aws:states:ap-southeast-2:503977275616:stateMachine:orcabus-data-migrate-mover',
+  ['PROD']: 'arn:aws:states:ap-southeast-2:503977275616:stateMachine:orcabus-data-migrate-mover',
+};
+
+/* Archive bucket per environment */
+export const ARCHIVE_BUCKET_NAME: Record<StageName, string> = {
+  ['BETA']: '',
+  ['GAMMA']: '',
+  ['PROD']: 'archive-prod-fastq-503977275616-ap-southeast-2',
+};
+
+/* BaseSpace SSM/Secrets paths */
+export const BASESPACE_API_SERVER_SSM_PARAMETER_PATH = '/orcabus/fastq-glue/basespace/api-server';
+export const BASESPACE_ACCESS_TOKEN_SECRET_PATH = '/orcabus/fastq-glue/basespace/access-token';
 
 /* Schema constants */
 export const SCHEMA_REGISTRY_NAME = EVENT_SCHEMA_REGISTRY_NAME;
