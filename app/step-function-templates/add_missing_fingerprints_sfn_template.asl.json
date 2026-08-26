@@ -40,9 +40,9 @@
       "Output": {
         "fastqSetIdList": "{% $states.result.Payload.fastqSetIdList %}"
       },
-      "Next": "Generate fingerprints for missing fastq sets (batched)"
+      "Next": "Generate missing fingerprints (batched)"
     },
-    "Generate fingerprints for missing fastq sets (batched)": {
+    "Generate missing fingerprints (batched)": {
       "Type": "Map",
       "ItemProcessor": {
         "ProcessorConfig": {
@@ -94,7 +94,7 @@
         }
       },
       "End": true,
-      "Label": "Generatefingerprintsformissingfastqsetsbatched",
+      "Label": "Generatemissingfingerprintsbatched",
       "MaxConcurrency": 1,
       "Items": "{% $states.input.fastqSetIdList %}",
       "ItemBatcher": {
