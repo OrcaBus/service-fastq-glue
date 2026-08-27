@@ -70,3 +70,7 @@ Lab Metadata constants
 export const METADATA_TRACKING_SHEET_ID_SSM_PARAMETER_PATH =
   '/umccr/google/drive/tracking_sheet_id';
 export const GDRIVE_AUTH_JSON_SSM_PARAMETER_PATH = '/umccr/google/drive/lims_service_account_json';
+
+/* BaseSpace SSM/Secrets paths */
+export const BASESPACE_API_SERVER_SSM_PARAMETER_PATH = '/orcabus/fastq-glue/basespace/api-server';
+export const BASESPACE_ACCESS_TOKEN_SECRET_PATH = '/orcabus/fastq-glue/basespace/access-token';

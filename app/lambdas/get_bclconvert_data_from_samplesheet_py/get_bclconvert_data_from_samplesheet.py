@@ -5,17 +5,20 @@ Get the bclconvert data from the samplesheet
 
 Given the inputs
 
-sampleId and sampleSheetUri,
+libraryIdList, instrumentRunId and laneList,
 
-1. Pull the sample sheet from S3
+1. Pull the sample sheet from the sequence run manager
 2. Parse in the samplesheet as a json object
 3. Get the bclconvert_data section and filter only the objects where sample_id is equal to sampleId
+4. For any bclconvert row that does not specify a lane, expand it over every lane in laneList
+   (a sample without a lane is implied to cover every lane on the instrument run)
 
 
 """
 
 # Imports
 from typing import Dict, List, Optional, Union
+from itertools import chain
 import re
 
 
@@ -57,14 +60,59 @@ def get_index(
     return index_str.translate(complement)[::-1]
 
 
+def expand_bclconvert_row_over_lanes(
+        bclconvert_row: Dict[str, str],
+        lane_list: List[int]
+) -> List[Dict[str, str]]:
+    """
+    Expand a single bclconvert data row over lanes.
+
+    If the row already has a 'lane' attribute, it is returned as-is (single element list).
+    Otherwise the sample is assumed to cover every lane on the instrument run, so one copy
+    of the row is created per lane in lane_list, with the 'lane' attribute set accordingly.
+
+    :param bclconvert_row: A single row from the bclconvertData section of the samplesheet
+    :param lane_list: The list of lanes on the instrument run
+    :return: A list of bclconvert data rows, one per lane
+    """
+    if bclconvert_row.get('lane') is not None:
+        return [bclconvert_row]
+
+    return list(map(
+        lambda lane_iter_: {
+            **bclconvert_row,
+            "lane": lane_iter_,
+        },
+        lane_list
+    ))
+
+
 def get_sample_bclconvert_data_from_v2_samplesheet(
         samplesheet: Dict,
         sample_id: str,
         global_cycle_count: int,
-        is_reversed: bool
+        is_reversed: bool,
+        lane_list: List[int]
 ) -> List[Dict[str, Union[str, int]]]:
     # Get the bclconvert data from the samplesheet
     # Return only the rows of the bclconvert data section where sample_id is equal to sampleId
+
+    # Get the rows for this sample id
+    sample_bclconvert_rows = list(filter(
+        lambda bclconvert_row_iter_: bclconvert_row_iter_['sampleId'] == sample_id,
+        samplesheet['bclconvertData']
+    ))
+
+    # Expand any rows that do not have a lane attribute over every lane on the run.
+    # A sample without a lane is implied to cover every lane on the instrument run.
+    expanded_bclconvert_rows = list(chain.from_iterable(map(
+        lambda bclconvert_row_iter_: expand_bclconvert_row_over_lanes(
+            bclconvert_row=bclconvert_row_iter_,
+            lane_list=lane_list
+        ),
+        sample_bclconvert_rows
+    )))
+
     return(
         list(map(
             lambda bclconvert_row_iter_: {
@@ -84,10 +132,7 @@ def get_sample_bclconvert_data_from_v2_samplesheet(
                     else global_cycle_count
                 )
             },
-            list(filter(
-                lambda bclconvert_row_iter_: bclconvert_row_iter_['sampleId'] == sample_id,
-                samplesheet['bclconvertData']
-            ))
+            expanded_bclconvert_rows
         ))
     )
 
@@ -122,6 +167,10 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
     library_id_list = event['libraryIdList']
     instrument_run_id = event['instrumentRunId']
 
+    # Get the list of lanes on the instrument run.
+    # Used to expand samples that do not specify a lane (they cover every lane).
+    lane_list = event['laneList']
+
     # Get the sequence orcabus id
 
     # Read the samplesheet
@@ -147,7 +196,8 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
                 samplesheet=samplesheet,
                 sample_id=library_id_iter_,
                 global_cycle_count=global_cycle_count,
-                is_reversed=is_reversed
+                is_reversed=is_reversed,
+                lane_list=lane_list
             )
         },
         library_id_list
