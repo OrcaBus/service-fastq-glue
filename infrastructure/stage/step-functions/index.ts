@@ -44,8 +44,11 @@ function createStateMachineDefinitionSubstitutions(props: BuildSfnProps): {
   /* Substitute lambdas in the state machine definition */
   for (const lambdaObject of lambdaObjects) {
     const sfnSubtitutionKey = `__${camelCaseToSnakeCase(lambdaObject.lambdaName)}_lambda_function_arn__`;
+    // Use latestVersion ($LATEST) so the state machine always invokes the most recent
+    // lambda code. This avoids having to redeploy the state machine whenever a lambda is
+    // modified and allows executions to be redriven against the updated lambda.
     definitionSubstitutions[sfnSubtitutionKey] =
-      lambdaObject.lambdaFunction.currentVersion.functionArn;
+      lambdaObject.lambdaFunction.latestVersion.functionArn;
   }
 
   /* Substitute the event bus in the state machine definition */
@@ -82,8 +85,27 @@ function wireUpStateMachinePermissions(scope: Construct, props: WirePermissionsP
         );
       }
       const lambdaObject = props.lambdas.find((lambda) => lambda.lambdaName === lambdaName);
-      lambdaObject?.lambdaFunction.currentVersion.grantInvoke(props.stateMachineObj);
+      // Grant invoke on the lambda function itself (all versions, including $LATEST)
+      // rather than a specific published version. This keeps the state machine's invoke
+      // permission valid across lambda code updates and enables redrives.
+      lambdaObject?.lambdaFunction.grantInvoke(props.stateMachineObj);
     }
+
+    // Granting invoke against the function (and its versions/$LATEST) produces a wildcard
+    // resource in the IAM policy, which cdk-nag flags as AwsSolutions-IAM5.
+    NagSuppressions.addResourceSuppressions(
+      props.stateMachineObj,
+      [
+        {
+          id: 'AwsSolutions-IAM5',
+          reason:
+            'The state machine invokes $LATEST of its lambdas so that lambda code fixes can be ' +
+            'picked up (and executions redriven) without redeploying the state machine. This ' +
+            'requires a wildcard over the lambda function versions.',
+        },
+      ],
+      true
+    );
   }
 
   /* Wire up event bus permissions */

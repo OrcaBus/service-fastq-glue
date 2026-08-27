@@ -42,11 +42,10 @@ export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): 
 
   /* Do we need the bssh tools layer? */
   if (lambdaRequirementsMap.needsAwsReadAccess) {
-    // Grant the lambda read access to the S3 bucket
-    props.s3BucketPrefix.s3Bucket.grantRead(
-      lambdaFunction.currentVersion,
-      `${props.s3BucketPrefix.s3Prefix}*`
-    );
+    // Grant the lambda read access to the S3 bucket.
+    // Grant to the function role (all versions, including $LATEST) rather than a specific
+    // published version so permissions remain valid across lambda code updates.
+    props.s3BucketPrefix.s3Bucket.grantRead(lambdaFunction, `${props.s3BucketPrefix.s3Prefix}*`);
 
     NagSuppressions.addResourceSuppressions(
       lambdaFunction,
@@ -87,9 +86,9 @@ export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): 
       gDriveAuthJsonSsmParameterObj.parameterName
     );
 
-    // Add permissions to the lambda function
-    metadataTrackingSheetIdSsmParameterObj.grantRead(lambdaFunction.currentVersion);
-    gDriveAuthJsonSsmParameterObj.grantRead(lambdaFunction.currentVersion);
+    // Add permissions to the lambda function (all versions, including $LATEST)
+    metadataTrackingSheetIdSsmParameterObj.grantRead(lambdaFunction);
+    gDriveAuthJsonSsmParameterObj.grantRead(lambdaFunction);
   }
 
   if (lambdaRequirementsMap.needsBasespaceAccess) {
@@ -116,9 +115,9 @@ export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): 
       basespaceAccessTokenSecretObj.secretName
     );
 
-    // Add permissions to the lambda function
-    basespaceApiServerSsmParameterObj.grantRead(lambdaFunction.currentVersion);
-    basespaceAccessTokenSecretObj.grantRead(lambdaFunction.currentVersion);
+    // Add permissions to the lambda function (all versions, including $LATEST)
+    basespaceApiServerSsmParameterObj.grantRead(lambdaFunction);
+    basespaceAccessTokenSecretObj.grantRead(lambdaFunction);
 
     NagSuppressions.addResourceSuppressions(
       lambdaFunction,
