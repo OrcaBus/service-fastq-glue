@@ -40,6 +40,7 @@ export interface SfnObject extends SfnProps {
 
 export const fastqSetGenerationLambdaList: Array<LambdaNameList> = [
   'getLibraryIdListFromSamplesheet',
+  'getLanesInRun',
   'getBclconvertDataFromSamplesheet',
   'createFastqSetObject',
 ];

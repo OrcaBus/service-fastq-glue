@@ -8,6 +8,8 @@ import {
 import { PythonUvFunction } from '@orcabus/platform-cdk-constructs/lambda';
 import path from 'path';
 import {
+  BASESPACE_ACCESS_TOKEN_SECRET_PATH,
+  BASESPACE_API_SERVER_SSM_PARAMETER_PATH,
   GDRIVE_AUTH_JSON_SSM_PARAMETER_PATH,
   LAMBDA_DIR,
   METADATA_TRACKING_SHEET_ID_SSM_PARAMETER_PATH,
@@ -18,6 +20,7 @@ import { camelCaseToSnakeCase } from '../utils';
 import { Construct } from 'constructs';
 import { NagSuppressions } from 'cdk-nag';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 
 export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): LambdaObject {
   const lambdaNameToSnakeCase = camelCaseToSnakeCase(props.lambdaName);
@@ -87,6 +90,46 @@ export function buildLambdaFunction(scope: Construct, props: BuildLambdaProps): 
     // Add permissions to the lambda function
     metadataTrackingSheetIdSsmParameterObj.grantRead(lambdaFunction.currentVersion);
     gDriveAuthJsonSsmParameterObj.grantRead(lambdaFunction.currentVersion);
+  }
+
+  if (lambdaRequirementsMap.needsBasespaceAccess) {
+    const basespaceApiServerSsmParameterObj = ssm.StringParameter.fromStringParameterAttributes(
+      scope,
+      'basespace_api_server_ssm_parameter',
+      {
+        parameterName: BASESPACE_API_SERVER_SSM_PARAMETER_PATH,
+      }
+    );
+    const basespaceAccessTokenSecretObj = secretsmanager.Secret.fromSecretNameV2(
+      scope,
+      'basespace_access_token_secret',
+      BASESPACE_ACCESS_TOKEN_SECRET_PATH
+    );
+
+    /* Add environment variables to the lambda function */
+    lambdaFunction.addEnvironment(
+      'BASESPACE_API_SERVER_SSM_PARAMETER_PATH',
+      basespaceApiServerSsmParameterObj.parameterName
+    );
+    lambdaFunction.addEnvironment(
+      'BASESPACE_ACCESS_TOKEN_SECRETS_MANAGER_PATH',
+      basespaceAccessTokenSecretObj.secretName
+    );
+
+    // Add permissions to the lambda function
+    basespaceApiServerSsmParameterObj.grantRead(lambdaFunction.currentVersion);
+    basespaceAccessTokenSecretObj.grantRead(lambdaFunction.currentVersion);
+
+    NagSuppressions.addResourceSuppressions(
+      lambdaFunction,
+      [
+        {
+          id: 'AwsSolutions-IAM5',
+          reason: 'This lambda requires read access to the BaseSpace SSM parameter and secret.',
+        },
+      ],
+      true
+    );
   }
 
   /* Return the lambda object */

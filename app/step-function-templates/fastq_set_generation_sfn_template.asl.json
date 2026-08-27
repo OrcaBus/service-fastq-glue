@@ -33,9 +33,41 @@
           "JitterStrategy": "FULL"
         }
       ],
-      "Next": "For each library (batched)",
-      "Output": {
+      "Next": "Get Lanes in Run",
+      "Assign": {
         "libraryIdList": "{% $states.result.Payload.libraryIdList %}"
+      }
+    },
+    "Get Lanes in Run": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Arguments": {
+        "FunctionName": "${__get_lanes_in_run_lambda_function_arn__}",
+        "Payload": {
+          "instrumentRunId": "{% $instrumentRunId %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException",
+            "States.TaskFailed"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "For each library (batched)",
+      "Assign": {
+        "laneList": "{% $states.result.Payload.laneList %}"
+      },
+      "Output": {
+        "libraryIdList": "{% $libraryIdList %}"
       }
     },
     "For each library (batched)": {
@@ -55,7 +87,8 @@
             "Next": "Get BCLConvert Data from SampleSheet",
             "Assign": {
               "libraryIdListMapIter": "{% $states.input.Items %}",
-              "instrumentRunIdMapIter": "{% $states.input.BatchInput.instrumentRunId %}"
+              "instrumentRunIdMapIter": "{% $states.input.BatchInput.instrumentRunId %}",
+              "laneListMapIter": "{% $states.input.BatchInput.laneList %}"
             }
           },
           "Get BCLConvert Data from SampleSheet": {
@@ -68,7 +101,8 @@
               "FunctionName": "${__get_bclconvert_data_from_samplesheet_lambda_function_arn__}",
               "Payload": {
                 "libraryIdList": "{% $libraryIdListMapIter %}",
-                "instrumentRunId": "{% $instrumentRunIdMapIter %}"
+                "instrumentRunId": "{% $instrumentRunIdMapIter %}",
+                "laneList": "{% $laneListMapIter %}"
               }
             },
             "Retry": [
@@ -141,7 +175,8 @@
       "ItemBatcher": {
         "MaxItemsPerBatch": 10,
         "BatchInput": {
-          "instrumentRunId": "{% $instrumentRunId %}"
+          "instrumentRunId": "{% $instrumentRunId %}",
+          "laneList": "{% $laneList %}"
         }
       }
     },

@@ -5,6 +5,7 @@ import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 export type LambdaNameList =
   // Fastq set creation
   | 'getLibraryIdListFromSamplesheet'
+  | 'getLanesInRun'
   | 'getBclconvertDataFromSamplesheet'
   | 'createFastqSetObject'
   // Fastq deprecation
@@ -25,6 +26,7 @@ export type LambdaNameList =
 export const lambdaNameList: Array<LambdaNameList> = [
   // Fastq set creation
   'getLibraryIdListFromSamplesheet',
+  'getLanesInRun',
   'getBclconvertDataFromSamplesheet',
   'createFastqSetObject',
   // Fastq deprecation
@@ -60,6 +62,9 @@ export interface LambdaRequirementProps {
 
   /* Needs Longer timeout */
   needsLongerTimeout?: boolean;
+
+  /* Needs BaseSpace credentials (SSM parameter + Secrets Manager secret) */
+  needsBasespaceAccess?: boolean;
 }
 
 export interface BuildLambdasProps {
@@ -85,6 +90,10 @@ export const lambdaToRequirementsMap: LambdaToRequirementsMapType = {
   // Fastq set creation related
   getLibraryIdListFromSamplesheet: {
     needsOrcabusApiToolsLayer: true,
+  },
+  getLanesInRun: {
+    needsOrcabusApiToolsLayer: true,
+    needsBasespaceAccess: true,
   },
   getBclconvertDataFromSamplesheet: {
     needsOrcabusApiToolsLayer: true,
