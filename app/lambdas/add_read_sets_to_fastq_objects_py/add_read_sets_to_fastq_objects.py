@@ -4,11 +4,15 @@
 Add read sets and read counts to fastq objects.
 """
 
+# Standard imports
+from typing import List
+
 # Layer imports
 from orcabus_api_tools.fastq import (
     get_fastq, add_read_set,
     add_read_count, detach_read_set
 )
+from orcabus_api_tools.fastq.models import Fastq
 
 
 def handler(event, context):
@@ -25,7 +29,7 @@ def handler(event, context):
     demux_data = event['demuxData']
 
     # Get fastq objects from fastq list
-    fastq_objects = list(map(
+    fastq_objects: List[Fastq] = list(map(
         lambda fastq_id_iter_: get_fastq(fastq_id_iter_, includeS3Details=True),
         fastq_id_list
     ))
@@ -51,8 +55,14 @@ def handler(event, context):
             # The read set is already attached, skip
             continue
 
+        # Detach the old read set first
         if fastq_object['readSet'] is not None:
-            # Detach the old read set first
+            # Confirm that the new read count and old read count are identical
+            if fastq_object['readCount'] != demux_data_object['readCount']:
+                raise ValueError("Failure! Read count mismatch.")
+            if fastq_object['baseCountEst'] != demux_data_object['baseCountEst']:
+                raise ValueError("Failure! Base count mismatch.")
+            # Safe to detach
             detach_read_set(fastq_object['id'])
 
         # Add read set
