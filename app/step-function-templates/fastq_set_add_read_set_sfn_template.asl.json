@@ -355,7 +355,7 @@
             "MaxConcurrency": 10,
             "End": true,
             "Output": {
-              "results": "{% $states.result %}"
+              "results": "{% [$states.result] %}"
             }
           }
         }
