@@ -355,14 +355,14 @@
             "MaxConcurrency": 10,
             "End": true,
             "Output": {
-              "results": "{% [$states.result] %}"
+              "results": "{% $states.result %}"
             }
           }
         }
       },
       "Next": "Any discrepancies?",
       "Assign": {
-        "validationResults": "{% [$map($states.result, function($batchResultIter){ $batchResultIter.results })] %}"
+        "validationResults": "{% [$states.result.results] %}"
       }
     },
     "Any discrepancies?": {
