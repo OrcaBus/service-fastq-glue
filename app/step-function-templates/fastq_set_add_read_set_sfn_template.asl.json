@@ -41,16 +41,353 @@
           "JitterStrategy": "FULL"
         }
       ],
-      "Next": "For each library (batched)",
-      "Output": {
+      "Next": "Validate all fastqs in run (batched)",
+      "Assign": {
         "libraryIdList": "{% $states.result.Payload.libraryIdList %}"
       }
     },
+    "Validate all fastqs in run (batched)": {
+      "Type": "Map",
+      "Comment": "Phase 1: validate every fastq in the run BEFORE any read set is swapped. No read set is reassigned unless every existing fastq id is confirmed unchanged.",
+      "Label": "Validateallfastqsinrunbatched",
+      "MaxConcurrency": 1,
+      "Items": "{% $libraryIdList %}",
+      "ItemBatcher": {
+        "BatchInput": {
+          "fastqListUri": "{% $fastqListUri %}",
+          "demuxStatsUri": "{% $demuxStatsUri %}",
+          "instrumentRunId": "{% $instrumentRunId %}"
+        },
+        "MaxItemsPerBatch": 10
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "Get vars inside validation map",
+        "States": {
+          "Get vars inside validation map": {
+            "Type": "Pass",
+            "Next": "Get read sets for validation",
+            "Assign": {
+              "libraryIdListMapIter": "{% $states.input.Items %}",
+              "fastqListUriMapIter": "{% $states.input.BatchInput.fastqListUri %}",
+              "demuxStatsUriMapIter": "{% $states.input.BatchInput.demuxStatsUri %}",
+              "instrumentRunIdMapIter": "{% $states.input.BatchInput.instrumentRunId %}"
+            }
+          },
+          "Get read sets for validation": {
+            "Type": "Parallel",
+            "Next": "Build validation list",
+            "Branches": [
+              {
+                "StartAt": "Get Fastq Objects For Validation",
+                "States": {
+                  "Get Fastq Objects For Validation": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::lambda:invoke",
+                    "Arguments": {
+                      "FunctionName": "${__get_fastq_objects_lambda_function_arn__}",
+                      "Payload": {
+                        "libraryIdList": "{% $libraryIdListMapIter %}",
+                        "instrumentRunId": "{% $instrumentRunIdMapIter %}"
+                      }
+                    },
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "Lambda.ServiceException",
+                          "Lambda.AWSLambdaException",
+                          "Lambda.SdkClientException",
+                          "Lambda.TooManyRequestsException",
+                          "States.TaskFailed"
+                        ],
+                        "IntervalSeconds": 1,
+                        "MaxAttempts": 3,
+                        "BackoffRate": 2,
+                        "JitterStrategy": "FULL"
+                      }
+                    ],
+                    "End": true,
+                    "Output": {
+                      "fastqIdsByLibrary": "{% $states.result.Payload.fastqIdsByLibrary %}"
+                    }
+                  }
+                }
+              },
+              {
+                "StartAt": "Get File Names for Validation",
+                "States": {
+                  "Get File Names for Validation": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::lambda:invoke",
+                    "Output": {
+                      "fileNamesListBySample": "{% $states.result.Payload.fileNamesListBySample %}"
+                    },
+                    "Arguments": {
+                      "FunctionName": "${__get_file_names_from_fastq_list_csv_lambda_function_arn__}",
+                      "Payload": {
+                        "sampleIdList": "{% $libraryIdListMapIter %}",
+                        "fastqListUri": "{% $fastqListUriMapIter %}"
+                      }
+                    },
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "Lambda.ServiceException",
+                          "Lambda.AWSLambdaException",
+                          "Lambda.SdkClientException",
+                          "Lambda.TooManyRequestsException",
+                          "States.TaskFailed"
+                        ],
+                        "IntervalSeconds": 1,
+                        "MaxAttempts": 3,
+                        "BackoffRate": 2,
+                        "JitterStrategy": "FULL"
+                      }
+                    ],
+                    "End": true
+                  }
+                }
+              }
+            ],
+            "Output": {
+              "dataByLibrary": "{% /* https://try.jsonata.org/83qHy8eHK */\n\n(\n    $libraryIds := [$map(\n        $states.result[0].fastqIdsByLibrary,\n        function($fastqIdsByLibraryIter) {\n            $fastqIdsByLibraryIter.libraryId\n        }\n    )];\n\n    $getfastqIdListForLibrary := function($libraryId){\n        [\n            $map(\n                [\n                    $filter(\n                        $states.result[0].fastqIdsByLibrary,\n                        function($fastqIdsByLibraryIter){\n                            $fastqIdsByLibraryIter.libraryId = $libraryId\n                        }\n                    )\n                ],\n                function($fastqIdsByLibraryIter){\n                    $fastqIdsByLibraryIter.fastqIdList\n                }\n            )\n        ]\n    };\n\n    $fileNamesListBySample := function($sampleId){\n        [\n            $map(\n                [\n                    $filter(\n                        $states.result[1].fileNamesListBySample,\n                        function($fileNamesListBySampleIter){\n                            $fileNamesListBySampleIter.sampleId = $sampleId\n                        }\n                    )\n                ],\n                function($fileNamesListBySampleIter){\n                    $fileNamesListBySampleIter.fileNamesList\n                }\n            )\n        ]\n    };\n\n    [$map(\n        $libraryIds,\n        function($libraryId) {\n            {\n                \"libraryId\": $libraryId,\n                \"fastqIdList\": $getfastqIdListForLibrary($libraryId),\n                \"fileNamesList\": $fileNamesListBySample($libraryId)\n            }\n        }\n    )]\n) %}"
+            }
+          },
+          "Build validation list": {
+            "Type": "Map",
+            "ItemProcessor": {
+              "ProcessorConfig": {
+                "Mode": "INLINE"
+              },
+              "StartAt": "Generate Fastq Validation List",
+              "States": {
+                "Generate Fastq Validation List": {
+                  "Type": "Task",
+                  "Resource": "arn:aws:states:::lambda:invoke",
+                  "Arguments": {
+                    "FunctionName": "${__generate_fastq_validation_list_lambda_function_arn__}",
+                    "Payload": {
+                      "fastqIdList": "{% $states.input.fastqIdList %}",
+                      "fileNamesList": "{% $states.input.fileNamesList %}"
+                    }
+                  },
+                  "Retry": [
+                    {
+                      "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException",
+                        "States.TaskFailed"
+                      ],
+                      "IntervalSeconds": 1,
+                      "MaxAttempts": 3,
+                      "BackoffRate": 2,
+                      "JitterStrategy": "FULL"
+                    }
+                  ],
+                  "End": true,
+                  "Output": {
+                    "validationList": "{% $states.result.Payload.validationList %}"
+                  }
+                }
+              }
+            },
+            "Items": "{% $states.input.dataByLibrary %}",
+            "ItemSelector": {
+              "fastqIdList": "{% $states.context.Map.Item.Value.fastqIdList %}",
+              "fileNamesList": "{% $states.context.Map.Item.Value.fileNamesList %}"
+            },
+            "MaxConcurrency": 1,
+            "Next": "Validate fastqs in batch",
+            "Assign": {
+              "validationList": "{% [$states.result.validationList] %}"
+            }
+          },
+          "Validate fastqs in batch": {
+            "Type": "Map",
+            "ItemProcessor": {
+              "ProcessorConfig": {
+                "Mode": "INLINE"
+              },
+              "StartAt": "Calculate and check fastq",
+              "States": {
+                "Calculate and check fastq": {
+                  "Type": "Parallel",
+                  "Next": "Compare read count and md5",
+                  "Branches": [
+                    {
+                      "StartAt": "Ensure existing fastq has read count and md5",
+                      "States": {
+                        "Ensure existing fastq has read count and md5": {
+                          "Type": "Task",
+                          "Resource": "arn:aws:states:::events:putEvents.waitForTaskToken",
+                          "Arguments": {
+                            "Entries": [
+                              {
+                                "Detail": {
+                                  "taskToken": "{% $states.context.Task.Token %}",
+                                  "payload": {
+                                    "fastqIdList": "{% [$states.input.fastqId] %}",
+                                    "requirements": {
+                                      "hasReadCount": true,
+                                      "hasFileCompressionInformation": true
+                                    }
+                                  }
+                                },
+                                "DetailType": "${__fastq_sync_request_detail_type__}",
+                                "EventBusName": "${__event_bus_name__}",
+                                "Source": "${__stack_event_source__}"
+                              }
+                            ]
+                          },
+                          "End": true,
+                          "Output": {}
+                        }
+                      }
+                    },
+                    {
+                      "StartAt": "Calculate read count of new file",
+                      "States": {
+                        "Calculate read count of new file": {
+                          "Type": "Task",
+                          "Resource": "arn:aws:states:::events:putEvents.waitForTaskToken",
+                          "Arguments": {
+                            "Entries": [
+                              {
+                                "Detail": {
+                                  "taskToken": "{% $states.context.Task.Token %}",
+                                  "payload": {
+                                    "fastqIdList": "{% [$states.input.fastqId] %}",
+                                    "fileUriByFastqIdMap": "{% { $states.input.fastqId: ($states.input.newRead2FileUri != null ? [$states.input.newRead1FileUri, $states.input.newRead2FileUri] : [$states.input.newRead1FileUri]) } %}"
+                                  }
+                                },
+                                "DetailType": "${__read_count_calculation_request_sync_detail_type__}",
+                                "EventBusName": "${__event_bus_name__}",
+                                "Source": "${__stack_event_source__}"
+                              }
+                            ]
+                          },
+                          "End": true,
+                          "Output": {
+                            "readCountResult": "{% $states.result %}"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "StartAt": "Calculate raw md5sum of new file",
+                      "States": {
+                        "Calculate raw md5sum of new file": {
+                          "Type": "Task",
+                          "Resource": "arn:aws:states:::events:putEvents.waitForTaskToken",
+                          "Arguments": {
+                            "Entries": [
+                              {
+                                "Detail": {
+                                  "taskToken": "{% $states.context.Task.Token %}",
+                                  "payload": {
+                                    "fastqIdList": "{% [$states.input.fastqId] %}",
+                                    "fileUriByFastqIdMap": "{% { $states.input.fastqId: ($states.input.newRead2FileUri != null ? [$states.input.newRead1FileUri, $states.input.newRead2FileUri] : [$states.input.newRead1FileUri]) } %}"
+                                  }
+                                },
+                                "DetailType": "${__raw_md5sum_calculation_request_sync_detail_type__}",
+                                "EventBusName": "${__event_bus_name__}",
+                                "Source": "${__stack_event_source__}"
+                              }
+                            ]
+                          },
+                          "End": true,
+                          "Output": {
+                            "rawMd5sumResult": "{% $states.result %}"
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "Assign": {
+                    "fastqIdMapIter": "{% $states.input.fastqId %}"
+                  },
+                  "Output": {
+                    "readCountResult": "{% $states.result[1].readCountResult %}",
+                    "rawMd5sumResult": "{% $states.result[2].rawMd5sumResult %}"
+                  }
+                },
+                "Compare read count and md5": {
+                  "Type": "Task",
+                  "Resource": "arn:aws:states:::lambda:invoke",
+                  "Arguments": {
+                    "FunctionName": "${__compare_fastq_read_count_and_md5_lambda_function_arn__}",
+                    "Payload": {
+                      "fastqId": "{% $fastqIdMapIter %}",
+                      "readCountResult": "{% $states.input.readCountResult %}",
+                      "rawMd5sumResult": "{% $states.input.rawMd5sumResult %}"
+                    }
+                  },
+                  "Retry": [
+                    {
+                      "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException",
+                        "States.TaskFailed"
+                      ],
+                      "IntervalSeconds": 1,
+                      "MaxAttempts": 3,
+                      "BackoffRate": 2,
+                      "JitterStrategy": "FULL"
+                    }
+                  ],
+                  "End": true,
+                  "Output": {
+                    "fastqId": "{% $states.result.Payload.fastqId %}",
+                    "matches": "{% $states.result.Payload.matches %}",
+                    "discrepancies": "{% $states.result.Payload.discrepancies %}"
+                  }
+                }
+              }
+            },
+            "Items": "{% $validationList %}",
+            "MaxConcurrency": 10,
+            "End": true,
+            "Output": {
+              "results": "{% [$states.result] %}"
+            }
+          }
+        }
+      },
+      "Next": "Any discrepancies?",
+      "Assign": {
+        "validationResults": "{% [$map($states.result, function($batchResultIter){ $batchResultIter.results })] %}"
+      }
+    },
+    "Any discrepancies?": {
+      "Type": "Choice",
+      "Comment": "Fail the whole run (before any swap) if any fastq's read count or raw md5sum did not match.",
+      "Choices": [
+        {
+          "Comment": "One or more read counts or md5sums did not match",
+          "Condition": "{% $count($filter($validationResults, function($resultIter){ $resultIter.matches = false })) > 0 %}",
+          "Next": "Fail on discrepancies"
+        }
+      ],
+      "Default": "For each library (batched)"
+    },
+    "Fail on discrepancies": {
+      "Type": "Fail",
+      "Error": "ReadSetValidationFailed",
+      "Cause": "{% 'Read count / raw md5sum mismatch detected for the new files before the read set swap. No read sets were reassigned. Discrepancies: ' & $string([$map($filter($validationResults, function($resultIter){ $resultIter.matches = false }), function($resultIter){ $resultIter.discrepancies })]) %}"
+    },
     "For each library (batched)": {
       "Type": "Map",
+      "Comment": "Phase 2: swap read sets. Only reached once every fastq in the run has been validated as unchanged.",
       "Label": "Foreachlibrarybatched",
       "MaxConcurrency": 1,
-      "Items": "{% $states.input.libraryIdList %}",
+      "Items": "{% $libraryIdList %}",
       "ItemBatcher": {
         "BatchInput": {
           "fastqListUri": "{% $fastqListUri %}",
@@ -187,7 +524,7 @@
                 }
               }
             ],
-            "Output": {
+            "Assign": {
               "dataByLibrary": "{% /* https://try.jsonata.org/83qHy8eHK */\n\n(\n    $libraryIds := [$map(\n        $states.result[0].fastqIdsByLibrary,\n        function($fastqIdsByLibraryIter) {\n            $fastqIdsByLibraryIter.libraryId\n        }\n    )];\n\n    $getfastqIdListForLibrary := function($libraryId){\n        [\n            $map(\n                [\n                    $filter(\n                        $states.result[0].fastqIdsByLibrary,\n                        function($fastqIdsByLibraryIter){\n                            $fastqIdsByLibraryIter.libraryId = $libraryId\n                        }\n                    )\n                ],\n                function($fastqIdsByLibraryIter){\n                    $fastqIdsByLibraryIter.fastqIdList\n                }\n            )\n        ]\n    };\n\n    $fileNamesListBySample := function($sampleId){\n        [\n            $map(\n                [\n                    $filter(\n                        $states.result[1].fileNamesListBySample,\n                        function($fileNamesListBySampleIter){\n                            $fileNamesListBySampleIter.sampleId = $sampleId\n                        }\n                    )\n                ],\n                function($fileNamesListBySampleIter){\n                    $fileNamesListBySampleIter.fileNamesList\n                }\n            )\n        ]\n    };\n\n    $demuxDataBySample := function($sampleId){\n        [\n            $map(\n                [\n                    $filter(\n                        $states.result[2].demuxDataBySample,\n                        function($demuxDataBySampleIter){\n                            $demuxDataBySampleIter.sampleId = $sampleId\n                        }\n                    )\n                ],\n                function($demuxDataBySampleIter){\n                    $demuxDataBySampleIter.demuxData\n                }\n            )\n        ]\n    };\n\n\n\n    [$map(\n        $libraryIds,\n        function($libraryId) {\n            {\n                \"libraryId\": $libraryId,\n                \"fastqIdList\": $getfastqIdListForLibrary($libraryId),\n                \"fileNamesList\": $fileNamesListBySample($libraryId),\n                \"demuxData\": $demuxDataBySample($libraryId)\n            }\n        }\n    )]\n) %}"
             }
           },
@@ -230,7 +567,7 @@
               }
             },
             "End": true,
-            "Items": "{% $states.input.dataByLibrary %}",
+            "Items": "{% $dataByLibrary %}",
             "ItemSelector": {
               "libraryId": "{% $states.context.Map.Item.Value.libraryId %}",
               "fastqIdList": "{% $states.context.Map.Item.Value.fastqIdList %}",

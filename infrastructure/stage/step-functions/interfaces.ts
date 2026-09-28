@@ -51,6 +51,9 @@ export const fastqSetAddReadSetLambdaList: Array<LambdaNameList> = [
   'getFastqObjects',
   'getFileNamesFromFastqListCsv',
   'getSampleDemultiplexStats',
+  // Pre-swap read set validation
+  'generateFastqValidationList',
+  'compareFastqReadCountAndMd5',
 ];
 
 export const handleSequencingRunFailureLambdaList: Array<LambdaNameList> = [
