@@ -78,7 +78,7 @@ Notes:
 - Raw md5sum sync output:
   `{ "rawMd5sumList": [ { "fastqId", "rawMd5sumByOraFileIngestIdList": [ { "ingestId", "rawMd5sum" } ] } ] }`.
   The `ingestId`s correspond to the fastq object's existing readSet ingest ids
-  (`readSet.r1.s3IngestId` / `readSet.r2.s3IngestId`).
+  (`readSet.r1.ingestId` / `readSet.r2.ingestId`).
 
 ### Fastq-sync manager (`service-fastq-sync-manager`)
 
@@ -175,7 +175,7 @@ the swap of the very first fastq - the run is all-or-nothing.
      compares:
      - `readCount` (new) vs `fastq.readCount` (recorded)
      - each `rawMd5sumByOraFileIngestIdList[*].rawMd5sum` (new) vs the recorded
-       `readSet.r1/r2.rawMd5sum`, matched by `ingestId` -> `s3IngestId`.
+       `readSet.r1/r2.rawMd5sum`, matched by `ingestId`.
    - Output: `{ fastqId, matches: bool, discrepancies: [ { type, expected, actual, read? } ] }`.
      Never raises on a mismatch — mismatches are data, collected downstream.
 

@@ -17,7 +17,7 @@ fileUriByFastqIdMap). The recorded values come from the fastq object:
 
 The decompression raw md5sum output is keyed by the fastq object's existing
 read set ingest ids, so we map each returned md5sum back to r1 / r2 by matching
-the ingest id against the read set's s3IngestId.
+the ingest id against the read set's ingestId.
 
 Input event:
 {
@@ -150,7 +150,7 @@ def compare_raw_md5sums(
         if read_object is None:
             continue
 
-        ingest_id = read_object.get('s3IngestId', None)
+        ingest_id = read_object.get('ingestId', None)
         expected = read_object.get('rawMd5sum', None)
         actual = md5sum_by_ingest_id.get(ingest_id, None)
 
