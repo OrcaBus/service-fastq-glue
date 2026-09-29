@@ -61,6 +61,9 @@ export const FASTQ_SYNC_REQUEST_DETAIL_TYPE = 'FastqSync';
 /* Somalier constants */
 export const DEFAULT_REFERENCE_NAME = 'hg38';
 
+/* UMCCR Constants */
+export const AUTOMATED_WORKFLOW_PREFIX = 'umccr--automated--';
+
 /*
 AWS S3 Resources differ between environments
 */
