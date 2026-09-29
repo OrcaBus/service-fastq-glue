@@ -11,6 +11,9 @@ import { Construct } from 'constructs';
 import {
   DEFAULT_REFERENCE_NAME,
   FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE,
+  FASTQ_SYNC_REQUEST_DETAIL_TYPE,
+  RAW_MD5SUM_CALCULATION_REQUEST_SYNC_DETAIL_TYPE,
+  READ_COUNT_CALCULATION_REQUEST_SYNC_DETAIL_TYPE,
   READ_SETS_ADDED_EVENT_DETAIL_TYPE,
   SRM_CLEANUP_EVENT_DETAIL_TYPE,
   STACK_PREFIX,
@@ -62,6 +65,16 @@ function createStateMachineDefinitionSubstitutions(props: BuildSfnProps): {
   definitionSubstitutions['__read_sets_added_event_detail_type__'] =
     READ_SETS_ADDED_EVENT_DETAIL_TYPE;
   definitionSubstitutions['__srm_clean_up_detail_type__'] = SRM_CLEANUP_EVENT_DETAIL_TYPE;
+
+  /*
+  Substitute the fastq-decompression / fastq-sync manager (sync) detail types
+  used by the pre-swap read set validation phase
+  */
+  definitionSubstitutions['__read_count_calculation_request_sync_detail_type__'] =
+    READ_COUNT_CALCULATION_REQUEST_SYNC_DETAIL_TYPE;
+  definitionSubstitutions['__raw_md5sum_calculation_request_sync_detail_type__'] =
+    RAW_MD5SUM_CALCULATION_REQUEST_SYNC_DETAIL_TYPE;
+  definitionSubstitutions['__fastq_sync_request_detail_type__'] = FASTQ_SYNC_REQUEST_DETAIL_TYPE;
 
   /* Add in the default reference name */
   definitionSubstitutions['__default_reference_name__'] = DEFAULT_REFERENCE_NAME;

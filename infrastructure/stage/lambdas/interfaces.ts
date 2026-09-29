@@ -17,6 +17,9 @@ export type LambdaNameList =
   | 'getFastqObjects'
   | 'getFileNamesFromFastqListCsv'
   | 'getSampleDemultiplexStats'
+  // Pre-swap read set validation related
+  | 'generateFastqValidationList'
+  | 'compareFastqReadCountAndMd5'
   // Extract fingerprint related
   | 'findMissingFingerprints'
   | 'getBamByLibraryId'
@@ -38,6 +41,9 @@ export const lambdaNameList: Array<LambdaNameList> = [
   'getFastqObjects',
   'getFileNamesFromFastqListCsv',
   'getSampleDemultiplexStats',
+  // Pre-swap read set validation related
+  'generateFastqValidationList',
+  'compareFastqReadCountAndMd5',
   // Extract fingerprint related
   'findMissingFingerprints',
   'getBamByLibraryId',
@@ -126,6 +132,13 @@ export const lambdaToRequirementsMap: LambdaToRequirementsMapType = {
   getSampleDemultiplexStats: {
     needsOrcabusApiToolsLayer: true,
     needsAwsReadAccess: true,
+  },
+  // Pre-swap read set validation related
+  generateFastqValidationList: {
+    needsOrcabusApiToolsLayer: true,
+  },
+  compareFastqReadCountAndMd5: {
+    needsOrcabusApiToolsLayer: true,
   },
   // Extract fingerprint related
   findMissingFingerprints: {

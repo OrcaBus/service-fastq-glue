@@ -41,6 +41,23 @@ export const FASTQ_LIST_ROWS_ADDED_EVENT_DETAIL_TYPE = 'FastqListRowsAdded';
 export const READ_SETS_ADDED_EVENT_DETAIL_TYPE = 'ReadSetsAdded';
 export const SRM_CLEANUP_EVENT_DETAIL_TYPE = 'SrmFailureCleanupFastqCompleted';
 
+/*
+Fastq Decompression Manager (sync / task-token) event detail types.
+Used to validate the newly copied files before swapping the read set URIs.
+See https://github.com/OrcaBus/service-fastq-decompression-manager
+*/
+export const READ_COUNT_CALCULATION_REQUEST_SYNC_DETAIL_TYPE = 'ReadCountCalculationRequestSync';
+export const RAW_MD5SUM_CALCULATION_REQUEST_SYNC_DETAIL_TYPE =
+  'OraToRawMd5sumCalculationRequestSync';
+
+/*
+Fastq Sync Manager (sync / task-token) event detail type.
+Used to ensure the existing fastq objects have a recorded read count and file
+compression information (raw md5sum) to compare the new files against.
+See https://github.com/OrcaBus/service-fastq-sync-manager
+*/
+export const FASTQ_SYNC_REQUEST_DETAIL_TYPE = 'FastqSync';
+
 /* Somalier constants */
 export const DEFAULT_REFERENCE_NAME = 'hg38';
 
