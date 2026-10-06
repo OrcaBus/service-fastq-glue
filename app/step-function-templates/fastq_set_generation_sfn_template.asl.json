@@ -18,7 +18,7 @@
         "FunctionName": "${__get_library_id_list_from_samplesheet_lambda_function_arn__}",
         "Payload": {
           "instrumentRunId": "{% $instrumentRunId %}",
-          "apiUrl": "{% apiUrl %}"
+          "apiUrl": "{% $apiUrl %}"
         }
       },
       "Retry": [

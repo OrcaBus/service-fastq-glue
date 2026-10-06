@@ -176,15 +176,17 @@ def handler(event, context) -> Dict[str, List[Dict[str, str]]]:
     # Read the samplesheet
     samplesheet: Dict = get_sample_sheet_from_instrument_run_id(instrument_run_id)['sampleSheetContent']
 
-    # Check the IndexOrientation setting in the samplesheet.
-    # The i5 index (index2) is reverse complemented when IndexOrientation is "Forward",
-    # because the demux stats are reported in the flipped orientation.
-    # A missing IndexOrientation field defaults to NOT reversed.
-    # NOTE: key path 'bclconvertSettings'/'indexOrientation' assumed from the camelCased
-    # parsing of the [BCLConvert_Settings] section (could not confirm against repo fixtures).
-    is_reversed = (
-        samplesheet['bclconvertSettings'].get('indexOrientation', '').lower() == 'forward'
+    # Determine the i5 (index2) orientation from the instrument type.
+    # Per Illumina's i5 index orientation guide, the NovaSeq X Series defaults to the
+    # 'Forward' i5 orientation, while all earlier instruments default to reverse complement.
+    # So we reverse complement the i5 index for every instrument EXCEPT the NovaSeq X Series.
+    # https://help.connected.illumina.com/run-set-up/overview/index-orientation-guide/i5-index-orientation-table
+    header = samplesheet.get('header', {})
+    is_novaseq_x = (
+        header.get('instrumentPlatform', '').lower() == 'novaseqxseries' or
+        header.get('instrumentType', '').lower() == 'novaseq x'
     )
+    is_reversed = not is_novaseq_x
 
     # Get override cycles from the samplesheet settings section
     global_cycle_count = get_global_cycle_count(samplesheet)

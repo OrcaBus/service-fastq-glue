@@ -52,6 +52,10 @@ function buildBsshFastqCopySucceededToFastqSetAddReadSetEventBridgeTarget(
       input: RuleTargetInput.fromObject({
         outputUri: EventField.fromPath('$.detail.payload.data.engineParameters.outputUri'),
         instrumentRunId: EventField.fromPath('$.detail.payload.data.tags.instrumentRunId'),
+        samplesheetChecksum: EventField.fromPath('$.detail.payload.data.tags.samplesheetChecksum'),
+        samplesheetChecksumType: EventField.fromPath(
+          '$.detail.payload.data.tags.samplesheetChecksumType'
+        ),
       }),
     })
   );
