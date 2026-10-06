@@ -7,6 +7,10 @@
         "instrumentRunId": {
           "type": "string",
           "description": "The unique identifier for the instrument run."
+        },
+        "sequencerRunId": {
+          "type": "string",
+          "description": "The unique identifier for the instrument run in BSSH from the SRM"
         }
       },
       "required": ["instrumentRunId"]
