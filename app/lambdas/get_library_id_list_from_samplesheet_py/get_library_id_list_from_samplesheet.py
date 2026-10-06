@@ -94,6 +94,12 @@ def get_checksum(
     if checksum_type == "md5":
         return hashlib.md5(content.encode("utf-8")).hexdigest()
 
+    # Checksum type is in the valid list but has no implementation here.
+    # Fail loudly rather than falling through and returning None.
+    raise NotImplementedError(
+        f"Checksum type '{checksum_type}' is valid but not implemented in this lambda"
+    )
+
 
 
 def handler(event, context) -> Dict[str, List[str]]:
