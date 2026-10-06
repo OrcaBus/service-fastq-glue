@@ -70,13 +70,15 @@ def get_secret_value(secret_path: str) -> str:
     )["SecretString"]
 
 
-def get_v1pre3_id_from_instrument_run_id(instrument_run_id: str) -> str:
+def get_v1pre3_id_from_instrument_run_id(
+        instrument_run_id: str,
+) -> str:
     """
     Given an instrument run id, resolve the BaseSpace v1pre3Id via the
     OrcaBus sequence run endpoint.
     """
     sequence_run_object = get_sequence_object_from_instrument_run_id(
-        instrument_run_id=instrument_run_id
+        instrument_run_id=instrument_run_id,
     )
 
     if sequence_run_object is None:
@@ -180,7 +182,9 @@ def handler(event, context) -> Dict[str, List[int]]:
 
     # Resolve the BaseSpace v1pre3Id from the instrument run id
     logger.info(f"Resolving v1pre3Id for instrument run '{instrument_run_id}'...")
-    v1pre3_id = get_v1pre3_id_from_instrument_run_id(instrument_run_id)
+    v1pre3_id = get_v1pre3_id_from_instrument_run_id(
+        instrument_run_id=instrument_run_id,
+    )
     logger.info(f"Found v1pre3Id '{v1pre3_id}' for instrument run '{instrument_run_id}'")
 
     # Find the RunInfo.xml file id

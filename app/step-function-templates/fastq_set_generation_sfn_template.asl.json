@@ -6,7 +6,9 @@
       "Type": "Pass",
       "Next": "Get Libraries in SampleSheet",
       "Assign": {
-        "instrumentRunId": "{% $states.input.instrumentRunId %}"
+        "instrumentRunId": "{% $states.input.instrumentRunId %}",
+        "sequenceRunId": "{% $states.input.sequenceRunId %}",
+        "apiUrl": "{% $states.input.apiUrl %}"
       }
     },
     "Get Libraries in SampleSheet": {
@@ -15,7 +17,8 @@
       "Arguments": {
         "FunctionName": "${__get_library_id_list_from_samplesheet_lambda_function_arn__}",
         "Payload": {
-          "instrumentRunId": "{% $instrumentRunId %}"
+          "instrumentRunId": "{% $instrumentRunId %}",
+          "apiUrl": "{% $apiUrl %}"
         }
       },
       "Retry": [
@@ -187,7 +190,8 @@
         "Entries": [
           {
             "Detail": {
-              "instrumentRunId": "{% $instrumentRunId %}"
+              "instrumentRunId": "{% $instrumentRunId %}",
+              "sequenceRunId": "{% $sequenceRunId %}"
             },
             "DetailType": "${__fastq_set_created_detail_type__}",
             "EventBusName": "${__event_bus_name__}",

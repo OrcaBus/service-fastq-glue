@@ -13,6 +13,8 @@ function buildSrmSampleSheetCreationToFastqSetGenerationSfnEventBridgeTarget(
     new eventsTargets.SfnStateMachine(props.stateMachineObj, {
       input: RuleTargetInput.fromObject({
         instrumentRunId: EventField.fromPath('$.detail.instrumentRunId'),
+        apiUrl: EventField.fromPath('$.detail.apiUrl'),
+        sequenceRunId: EventField.fromPath('$.detail.sequenceRunId'),
       }),
     })
   );
@@ -50,6 +52,10 @@ function buildBsshFastqCopySucceededToFastqSetAddReadSetEventBridgeTarget(
       input: RuleTargetInput.fromObject({
         outputUri: EventField.fromPath('$.detail.payload.data.engineParameters.outputUri'),
         instrumentRunId: EventField.fromPath('$.detail.payload.data.tags.instrumentRunId'),
+        samplesheetChecksum: EventField.fromPath('$.detail.payload.data.tags.samplesheetChecksum'),
+        samplesheetChecksumType: EventField.fromPath(
+          '$.detail.payload.data.tags.samplesheetChecksumType'
+        ),
       }),
     })
   );
