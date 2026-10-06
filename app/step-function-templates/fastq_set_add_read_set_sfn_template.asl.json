@@ -7,7 +7,9 @@
       "Next": "Secondary variables",
       "Assign": {
         "outputUri": "{% $states.input.outputUri %}",
-        "instrumentRunId": "{% $states.input.instrumentRunId %}"
+        "instrumentRunId": "{% $states.input.instrumentRunId %}",
+        "samplesheetChecksum": "{% $states.input.samplesheetChecksum %}",
+        "samplesheetChecksumType": "{% $states.input.samplesheetChecksumType %}"
       }
     },
     "Secondary variables": {
@@ -24,7 +26,9 @@
       "Arguments": {
         "FunctionName": "${__get_library_id_list_from_samplesheet_lambda_function_arn__}",
         "Payload": {
-          "instrumentRunId": "{% $instrumentRunId %}"
+          "instrumentRunId": "{% $instrumentRunId %}",
+          "samplesheetChecksum": "{% $samplesheetChecksum %}",
+          "samplesheetChecksumType": "{% $samplesheetChecksumType %}"
         }
       },
       "Retry": [

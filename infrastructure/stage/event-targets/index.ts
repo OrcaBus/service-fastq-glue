@@ -13,6 +13,8 @@ function buildSrmSampleSheetCreationToFastqSetGenerationSfnEventBridgeTarget(
     new eventsTargets.SfnStateMachine(props.stateMachineObj, {
       input: RuleTargetInput.fromObject({
         instrumentRunId: EventField.fromPath('$.detail.instrumentRunId'),
+        apiUrl: EventField.fromPath('$.detail.apiUrl'),
+        sequenceRunId: EventField.fromPath('$.detail.sequenceRunId'),
       }),
     })
   );
