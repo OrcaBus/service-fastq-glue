@@ -15,8 +15,9 @@ We get the following as inputs:
 
 
 """
-import hashlib
+
 # Imports
+import hashlib
 import typing
 import boto3
 from pathlib import Path
@@ -25,10 +26,13 @@ from typing import Tuple, Dict, List, Literal, cast
 
 # Construct imports
 from orcabus_api_tools.sequence import (
-    get_library_id_list_from_instrument_run_id, get_sample_sheet_from_instrument_run_id,
+    get_library_id_list_from_instrument_run_id,
     get_sample_sheet_from_orcabus_id, SampleSheet
 )
-from orcabus_api_tools.sequence.sequence_helpers import list_sample_sheets_for_instrument_run_id
+from orcabus_api_tools.sequence.sequence_helpers import (
+    list_sample_sheets_for_instrument_run_id,
+    get_sequence_run_object_from_sequence_orcabus_id
+)
 
 # Type hints
 if typing.TYPE_CHECKING:
@@ -134,7 +138,8 @@ def handler(event, context) -> Dict[str, List[str]]:
         # Get samplesheet orcabus id
         samplesheet_orcabus_id = get_samplesheet_orcabus_id_from_samplesheet_api_url(samplesheet_api_url)
         samplesheet = get_sample_sheet_from_orcabus_id(samplesheet_orcabus_id)
-        sequence_run_id = samplesheet['sequence']
+        sequence_run_orcabus_id = samplesheet['sequence']
+        sequence_run_id = get_sequence_run_object_from_sequence_orcabus_id(sequence_run_orcabus_id)['sequenceRunId']
 
     # From bssh-to-aws-s3, we have the samplesheet checksum and samplesheet checksum type.
     # Find the samplesheet
@@ -157,7 +162,8 @@ def handler(event, context) -> Dict[str, List[str]]:
                 ),
                 samplesheet_list
             ))
-            sequence_run_id = samplesheet['sequence']
+            sequence_run_orcabus_id = samplesheet['sequence']
+            sequence_run_id = get_sequence_run_object_from_sequence_orcabus_id(sequence_run_orcabus_id)['sequenceRunId']
 
         except StopIteration as e:
             raise ValueError(
@@ -165,8 +171,10 @@ def handler(event, context) -> Dict[str, List[str]]:
             ) from e
 
     return {
-        "libraryIdList": list(sorted(list(set(get_library_id_list_from_instrument_run_id(
-            instrument_run_id=instrument_run_id,
-            sequence_run_id=sequence_run_id
-        )))))
+        "libraryIdList": list(sorted(list(set(
+            get_library_id_list_from_instrument_run_id(
+                instrument_run_id=instrument_run_id,
+                sequence_run_id=sequence_run_id
+            )
+        ))))
     }
