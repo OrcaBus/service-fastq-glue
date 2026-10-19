@@ -78,10 +78,25 @@
                 "JitterStrategy": "FULL"
               }
             ],
-            "Next": "Run Extract Fingerprint",
+            "Next": "Has fastq set",
             "Assign": {
               "fastqSetId": "{% $states.result.Payload.fastqSetId %}"
             },
+            "Output": {}
+          },
+          "Has fastq set": {
+            "Type": "Choice",
+            "Choices": [
+              {
+                "Condition": "{% $not($exists($fastqSetId)) or $fastqSetId = null %}",
+                "Next": "Skip - no fastq set"
+              }
+            ],
+            "Default": "Run Extract Fingerprint"
+          },
+          "Skip - no fastq set": {
+            "Type": "Pass",
+            "End": true,
             "Output": {}
           },
           "Run Extract Fingerprint": {

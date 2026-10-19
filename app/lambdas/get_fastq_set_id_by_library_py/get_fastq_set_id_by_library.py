@@ -2,6 +2,8 @@
 
 """
 Given a library id, return the latest fastq set id associated with that library.
+
+If no current fastq set exists for the library, returns {"fastqSetId": None}.
 """
 
 # Layer imports
@@ -20,7 +22,10 @@ def handler(event, context):
             currentFastqSet=True
         )))
     except StopIteration:
-        raise ValueError(f"No current fastq set found for library id: {library_id}")
+        # No current fastq set for this library, return None so the caller can skip it
+        return {
+            "fastqSetId": None
+        }
 
     return {
         "fastqSetId": fastq_set['id']
