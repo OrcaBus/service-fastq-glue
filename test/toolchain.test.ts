@@ -9,7 +9,7 @@ describe('cdk-nag-stateless-toolchain-stack', () => {
 
   const statelessStack = new StatelessDeployStack(app, 'StatelessStack', {
     env: {
-      account: '123456789',
+      account: '123456789012',
       region: 'ap-southeast-2',
     },
   });
